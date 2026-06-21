@@ -1,0 +1,4309 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Onion Supply Ledger - Advanced digital ledger to record bag weights, rates, outstanding balances, and payments for onion merchants and suppliers.">
+  <meta name="theme-color" content="#6c5ce7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NAS Ledger">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <title>NAS Onion Ledger | Mobile Business Book</title>
+  <script>
+    // Register Service Worker for offline support & PWA install
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('SW registered:', reg.scope);
+        }).catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+  <style>
+    /* app.css - Premium Sage/Forest Green & Slate Design System with Dark/Light Mode */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      /* Common Transition */
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+      --sidebar-width: 260px;
+      --sidebar-collapsed-width: 80px;
+      --border-radius-sm: 8px;
+      --border-radius-md: 14px;
+      --border-radius-lg: 24px;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.12);
+
+      /* Light Theme Variables (Default) */
+      --bg-app: #f4f7f5;
+      --bg-card: #ffffff;
+      --bg-sidebar: #0f2a1d;
+      --sidebar-text: #e2e8f0;
+      --sidebar-text-active: #ffffff;
+      --sidebar-item-hover: rgba(255, 255, 255, 0.08);
+      --sidebar-item-active: #1e7e4c;
+      
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      
+      --primary: #155e37;
+      --primary-light: #d1e7dd;
+      --primary-hover: #0e4427;
+      --accent: #2ec4b6;
+      --border-color: #e2e8f0;
+      
+      --danger: #dc3545;
+      --danger-light: #f8d7da;
+      --success: #198754;
+      --success-light: #d1e7dd;
+      --warning: #ffc107;
+      --warning-light: #fff3cd;
+      --info: #0dcaf0;
+      
+      --chart-line: #155e37;
+      --chart-fill: rgba(21, 94, 55, 0.1);
+      --input-focus-border: #155e37;
+      --input-focus-shadow: rgba(21, 94, 55, 0.15);
+    }
+
+    /* Dark Theme Variables */
+    [data-theme="dark"] {
+      --bg-app: #080f0b;
+      --bg-card: #111a14;
+      --bg-sidebar: #060c08;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --sidebar-item-hover: rgba(255, 255, 255, 0.05);
+      --sidebar-item-active: #198754;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --primary: #198754;
+      --primary-light: rgba(25, 135, 84, 0.15);
+      --primary-hover: #1e7e4c;
+      --accent: #2ec4b6;
+      --border-color: #202d25;
+      
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.15);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --info: #3b82f6;
+      
+      --chart-line: #10b981;
+      --chart-fill: rgba(16, 185, 129, 0.1);
+      --input-focus-border: #10b981;
+      --input-focus-shadow: rgba(16, 185, 129, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: var(--transition-smooth);
+    }
+
+    /* Layout Structure */
+    #app-container {
+      display: flex;
+      width: 100vw;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    aside {
+      width: var(--sidebar-width);
+      background-color: var(--bg-sidebar);
+      display: flex;
+      flex-direction: column;
+      color: var(--sidebar-text);
+      transition: var(--transition-smooth);
+      flex-shrink: 0;
+      z-index: 100;
+      position: relative;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #2ec4b6, #198754);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+    }
+
+    .logo-text {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+      flex-grow: 1;
+    }
+
+    .logo-subtitle {
+      font-size: 11px;
+      color: #2ec4b6;
+      font-weight: 500;
+      display: block;
+    }
+
+    .theme-toggle-icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .theme-toggle-icon-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 24px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-grow: 1;
+    }
+
+    .menu-item a {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      border-radius: var(--border-radius-sm);
+      font-weight: 500;
+      font-size: 14px;
+      transition: var(--transition-smooth);
+    }
+
+    .menu-item a svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2px;
+    }
+
+    .menu-item:hover a {
+      background-color: var(--sidebar-item-hover);
+      color: var(--sidebar-text-active);
+      transform: translateX(4px);
+    }
+
+    .menu-item.active a {
+      background-color: var(--sidebar-item-active);
+      color: var(--sidebar-text-active);
+      box-shadow: 0 4px 15px rgba(25, 135, 84, 0.25);
+    }
+
+    /* Main Content Wrapper */
+    main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    header {
+      background-color: var(--bg-card);
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .page-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 14px;
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .user-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* View Sections */
+    .view-section {
+      display: none;
+      padding: 40px;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Dashboard KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      transition: var(--transition-smooth);
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+
+    .kpi-info h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .kpi-subvalue {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-icon.primary {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .kpi-icon.success {
+      background-color: var(--success-light);
+      color: var(--success);
+    }
+
+    .kpi-icon.danger {
+      background-color: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .kpi-icon.warning {
+      background-color: var(--warning-light);
+      color: var(--warning);
+    }
+
+    /* Dashboard Charts Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card h3 {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-container {
+      flex-grow: 1;
+      position: relative;
+      width: 100%;
+      height: 250px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    /* Shop Management Styles */
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 320px;
+      width: 100%;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      transition: var(--transition-smooth);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 0 3px var(--input-focus-shadow);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: var(--border-radius-sm);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #bd2130;
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Shop Grid & Cards */
+    .shops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .shop-card {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 200px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+    }
+
+    .shop-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-light);
+    }
+
+    .shop-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--primary);
+    }
+
+    .shop-card.has-balance::before {
+      background-color: var(--danger);
+    }
+
+    .shop-card.is-supplier::before {
+      background-color: var(--warning);
+    }
+
+    .shop-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .shop-card-name {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .shop-card-owner {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .shop-card-balance {
+      margin: 16px 0;
+      padding: 12px;
+      background-color: var(--bg-app);
+      border-radius: var(--border-radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .shop-card-balance span {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .shop-card-balance .balance-value {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .shop-card-balance.danger-bg .balance-value {
+      color: var(--danger);
+    }
+
+    .shop-card-balance.warning-bg .balance-value {
+      color: var(--warning);
+    }
+
+    .shop-card-balance.success-bg .balance-value {
+      color: var(--success);
+    }
+
+    .shop-card-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    /* Forms Styling */
+    .form-card {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 30px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 576px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.col-span-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 576px) {
+      .form-group.col-span-2 {
+        grid-column: span 1;
+      }
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .required::after {
+      content: ' *';
+      color: var(--danger);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      transition: var(--transition-smooth);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 0 3px var(--input-focus-shadow);
+    }
+
+    /* Smart Rapid Weights Input Panel */
+    .smart-entry-panel {
+      background-color: var(--bg-app);
+      border: 1px dashed var(--border-color);
+      border-radius: var(--border-radius-sm);
+      padding: 18px;
+      margin-top: 14px;
+    }
+
+    .smart-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .smart-entry-header h4 {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bag-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-sm);
+      padding: 12px;
+    }
+
+    .bag-stat-box {
+      text-align: center;
+    }
+
+    .bag-stat-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .bag-stat-val {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .bag-list-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+      max-height: 100px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .bag-badge {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .bag-badge-index {
+      font-size: 9px;
+      opacity: 0.7;
+    }
+
+    /* Modals & Backdrop Blur */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(15, 42, 29, 0.4);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-smooth);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-window {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+      width: 95%;
+      max-width: 900px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.9) translateY(20px);
+      transition: var(--transition-smooth);
+      overflow: hidden;
+    }
+
+    .modal-overlay.active .modal-window {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-primary);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background-color: var(--bg-app);
+    }
+
+    /* Shop Ledger Sheets in Modals */
+    .ledger-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--bg-sidebar), var(--primary));
+      color: white;
+      border-radius: var(--border-radius-md);
+      padding: 20px;
+    }
+
+    .ledger-header-info h3 {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .ledger-header-info p {
+      opacity: 0.8;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .ledger-header-totals {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      text-align: right;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      padding-left: 16px;
+    }
+
+    .ledger-total-due {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 800;
+      color: #2ec4b6;
+    }
+
+    /* Tab buttons for Shop statement details */
+    .detail-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    
+    .detail-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .detail-tab {
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition-smooth);
+      white-space: nowrap;
+    }
+
+    .detail-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .detail-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Customized HTML Table for supplies/payments list */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: var(--bg-app);
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border-color);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    tr:hover td {
+      background-color: rgba(21, 94, 55, 0.02);
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-danger {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .text-success {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background-color: var(--success-light);
+      color: var(--success);
+    }
+
+    .badge-danger {
+      background-color: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .badge-warning {
+      background-color: var(--warning-light);
+      color: var(--warning);
+    }
+
+    /* Data Manager Section Card */
+    .manager-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .manager-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .manager-card {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .manager-card-info h3 {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .manager-card-info p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .file-upload-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-upload-input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 2px dashed var(--border-color);
+      border-radius: var(--border-radius-sm);
+      text-align: center;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text-secondary);
+      background-color: var(--bg-app);
+      transition: var(--transition-smooth);
+    }
+
+    .file-upload-wrapper:hover .file-upload-btn {
+      border-color: var(--primary);
+      color: var(--primary);
+      background-color: var(--primary-light);
+    }
+
+    /* SVG Chart details */
+    .bar-chart-rect {
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+
+    .bar-chart-rect:hover {
+      fill: var(--accent);
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      background-color: rgba(15, 42, 29, 0.95);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-heading);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    /* Toast System */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--border-radius-sm);
+      padding: 14px 20px;
+      box-shadow: var(--shadow-lg);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 250px;
+      transform: translateX(120%);
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideIn {
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .toast.toast-success {
+      border-left-color: var(--success);
+    }
+
+    .toast.toast-danger {
+      border-left-color: var(--danger);
+    }
+
+    .toast.toast-warning {
+      border-left-color: var(--warning);
+    }
+
+    /* Mobile Friendly Responsive Rules */
+    @media (max-width: 768px) {
+      #app-container {
+        flex-direction: column;
+      }
+      
+      aside {
+        width: 100%;
+        height: auto;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .sidebar-header {
+        justify-content: space-between;
+        padding: 14px 16px;
+      }
+
+      .sidebar-menu {
+        flex-direction: row;
+        padding: 8px 12px;
+        overflow-x: auto;
+        gap: 6px;
+        scrollbar-width: none;
+      }
+      
+      .sidebar-menu::-webkit-scrollbar {
+        display: none; /* Hide scrollbars for navbar layout */
+      }
+
+      .menu-item a {
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+        gap: 6px;
+      }
+
+      main {
+        height: auto;
+        overflow-y: visible;
+      }
+
+      header {
+        padding: 16px 20px;
+      }
+
+      .view-section {
+        padding: 20px 16px;
+      }
+      
+      .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .search-box {
+        max-width: none;
+      }
+      
+      .form-card {
+        padding: 20px 16px;
+      }
+      
+      .ledger-header {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        text-align: left;
+      }
+      
+      .ledger-header-totals {
+        align-items: flex-start;
+        text-align: left;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-left: 0;
+        padding-top: 12px;
+      }
+    }
+
+    /* Print Invoice Stylesheet */
+    @media print {
+      body {
+        background-color: white !important;
+        color: black !important;
+      }
+
+      aside, header, .actions-bar, .modal-close-btn, .modal-footer, #toast-container, .btn, .detail-tabs {
+        display: none !important;
+      }
+
+      main {
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .view-section {
+        display: none !important;
+      }
+
+      .modal-overlay {
+        position: relative !important;
+        background: none !important;
+        backdrop-filter: none !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
+        z-index: auto !important;
+        display: block !important;
+      }
+
+      .modal-window {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+
+      .modal-body {
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+
+      .ledger-header {
+        background: none !important;
+        color: black !important;
+        border: 1px solid #ccc !important;
+        padding: 15px !important;
+      }
+
+      .ledger-header-info p {
+        color: black !important;
+      }
+
+      .ledger-header-totals {
+        border-left: 1px solid #ccc !important;
+      }
+
+      .ledger-total-due {
+        color: black !important;
+      }
+
+      table {
+        border: 1px solid #ccc !important;
+      }
+
+      th {
+        background-color: #eee !important;
+        color: black !important;
+        border-bottom: 1px solid #ccc !important;
+      }
+
+      td {
+        border-bottom: 1px solid #ccc !important;
+        color: black !important;
+      }
+
+      .tab-pane {
+        display: block !important;
+      }
+      
+      .print-only-signature {
+        display: block !important;
+        margin-top: 50px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .print-sig-box {
+        width: 200px;
+        border-top: 1px solid black;
+        text-align: center;
+        padding-top: 5px;
+        font-size: 12px;
+      }
+    }
+
+    .print-only-signature {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Sidebar Navigation -->
+    <aside>
+      <div class="sidebar-header">
+        <div class="logo-icon">N</div>
+        <div class="logo-text">
+          NAS
+          <span class="logo-subtitle">Onion Supplier</span>
+        </div>
+        <button id="theme-toggle-header" class="theme-toggle-icon-btn">
+          <svg style="width: 18px; height: 18px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-item active" data-target="dashboard-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="menu-item" data-target="shops-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Shops
+          </a>
+        </li>
+        <li class="menu-item" data-target="supply-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H16c-.5 0-.9-.4-.9-.9V4.5c0-.5-.4-.9-.9-.9H9.8c-.5 0-.9.4-.9.9v6.6c0 .5-.4.9-.9.9H2.5c-.5 0-.9.4-.9.9v6.6c0 .5.4.9.9.9h19c.5 0 .9-.4.9-.9v-6.6c0-.5-.4-.9-.9-.9z"></path></svg>
+            New Supply
+          </a>
+        </li>
+        <li class="menu-item" data-target="trips-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            Trips & Fuel
+          </a>
+        </li>
+        <li class="menu-item" data-target="sourcing-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            Wholesale Purchases
+          </a>
+        </li>
+        <li class="menu-item" data-target="payment-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            Payment
+          </a>
+        </li>
+        <li class="menu-item" data-target="backup-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Backup & Sync
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+      <!-- Common Header -->
+      <header>
+        <h1 class="page-title" id="current-view-title">Dashboard</h1>
+        <div class="header-actions">
+          <span class="user-badge" id="today-date-badge">21 Jun, 2026</span>
+        </div>
+      </header>
+
+      <!-- View 1: Dashboard -->
+      <section id="dashboard-view" class="view-section active">
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card" id="kpi-total-shops">
+            <div class="kpi-info">
+              <h3>Total Shops</h3>
+              <div class="kpi-value" id="kpi-shops-val">0</div>
+              <div class="kpi-subvalue">Active accounts</div>
+            </div>
+            <div class="kpi-icon primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-total-bags">
+            <div class="kpi-info">
+              <h3>Bags Supplied</h3>
+              <div class="kpi-value" id="kpi-bags-val">0</div>
+              <div class="kpi-subvalue" id="kpi-bags-sub">0.00 Tons Weight</div>
+            </div>
+            <div class="kpi-icon warning">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H16c-.5 0-.9-.4-.9-.9V4.5c0-.5-.4-.9-.9-.9H9.8c-.5 0-.9.4-.9.9v6.6c0 .5-.4.9-.9.9H2.5c-.5 0-.9.4-.9.9v6.6c0 .5.4.9.9.9h19c.5 0 .9-.4.9-.9v-6.6c0-.5-.4-.9-.9-.9z"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-sales">
+            <div class="kpi-info">
+              <h3>Total Sales</h3>
+              <div class="kpi-value" id="kpi-sales-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-sales-sub">Calculated value</div>
+            </div>
+            <div class="kpi-icon success">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-due">
+            <div class="kpi-info">
+              <h3>Outstanding Due</h3>
+              <div class="kpi-value" id="kpi-due-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-due-sub">Pending balances</div>
+            </div>
+            <div class="kpi-icon danger">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-give">
+            <div class="kpi-info">
+              <h3>Amount to Give</h3>
+              <div class="kpi-value" id="kpi-give-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-give-sub">Owed to wholesale suppliers</div>
+            </div>
+            <div class="kpi-icon warning" style="background-color: var(--warning-light); color: var(--warning);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logistics & Trips summary strip -->
+        <div class="kpi-grid" style="margin-top: -20px; margin-bottom: 40px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="kpi-card" style="border-left: 4px solid var(--accent);">
+            <div class="kpi-info">
+              <h3>Trips Log (Weekly)</h3>
+              <div class="kpi-value" id="logistics-trips-val">0</div>
+              <div class="kpi-subvalue" id="logistics-trips-sub">0 trips this week</div>
+            </div>
+            <div class="kpi-icon primary" style="background-color: rgba(46, 196, 182, 0.15); color: var(--accent);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+            <div class="kpi-info">
+              <h3>Fuel Cost (Weekly)</h3>
+              <div class="kpi-value" id="logistics-fuel-val">₹0.00</div>
+              <div class="kpi-subvalue" id="logistics-fuel-sub">₹0.00 total expense</div>
+            </div>
+            <div class="kpi-icon danger" style="background-color: var(--danger-light); color: var(--danger);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"></path><path d="M6 6V2h8v4"></path><path d="M13 18H7a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1z"></path><path d="M17 10h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+            <div class="kpi-info">
+              <h3>Avg Bags / Trip</h3>
+              <div class="kpi-value" id="logistics-avg-bags-val">0.0</div>
+              <div class="kpi-subvalue" id="logistics-avg-bags-sub">Bags per delivery trip</div>
+            </div>
+            <div class="kpi-icon warning" style="background-color: var(--warning-light); color: var(--warning);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Visual Charts -->
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <h3>Sales & Payment Flow (Last 6 Months)</h3>
+            <div class="chart-container" id="sales-chart-container"></div>
+          </div>
+          
+          <div class="chart-card">
+            <h3>Outstanding Balances by Shop</h3>
+            <div class="chart-container" id="pie-chart-container"></div>
+          </div>
+        </div>
+
+        <!-- Recent Supply Records -->
+        <div class="chart-card" style="min-height: auto;">
+          <h3 style="margin-bottom: 15px;">Recent Supply Transactions</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shop Name</th>
+                  <th class="text-right">Bags</th>
+                  <th class="text-right">Total Weight (Kg)</th>
+                  <th class="text-right">Rate / Kg</th>
+                  <th class="text-right">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-supplies"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Shops and Accounts -->
+      <section id="shops-view" class="view-section">
+        <div class="actions-bar">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="shop-search" placeholder="Search shops or owners...">
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <select id="shop-filter-sort" style="width: auto;">
+              <option value="name-asc">Sort: Name (A-Z)</option>
+              <option value="name-desc">Sort: Name (Z-A)</option>
+              <option value="balance-desc">Sort: Highest Due</option>
+              <option value="balance-asc">Sort: Lowest Due</option>
+            </select>
+            <button class="btn btn-primary" id="btn-add-shop">
+              <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Shop
+            </button>
+          </div>
+        </div>
+
+        <!-- Shops Grid -->
+        <div class="shops-grid" id="shops-list-container"></div>
+      </section>
+
+      <!-- View 3: New Supply Entry -->
+      <section id="supply-view" class="view-section">
+        <div class="form-card">
+          <form id="supply-entry-form">
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label for="supply-shop-select" class="required">Select Shop</label>
+                <select id="supply-shop-select" required>
+                  <option value="">-- Choose a Shop --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="supply-date" class="required">Supply Date</label>
+                <input type="date" id="supply-date" required>
+              </div>
+
+              <div class="form-group">
+                <label for="supply-rate" class="required">Rate per Kg (₹)</label>
+                <input type="number" id="supply-rate" step="0.01" min="0" placeholder="e.g. 28.50" required>
+              </div>
+
+              <div class="form-group col-span-2">
+                <label for="supply-weights" class="required">Bags Weight Input (Rapid Mode)</label>
+                <textarea id="supply-weights" rows="4" placeholder="Enter weights separated by spaces, commas, or enter (e.g. 42 45.5 48 51)" required></textarea>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                  💡 Just type bag weights one by one. Example: 45 42.5 46 51 40 43.5
+                </p>
+              </div>
+            </div>
+
+            <!-- Smart Parser Results -->
+            <div class="smart-entry-panel">
+              <div class="smart-entry-header">
+                <h4>
+                  <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  Real-time Calculations
+                </h4>
+              </div>
+
+              <div class="bag-list-preview" id="parsed-bags-preview">
+                <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>
+              </div>
+
+              <div class="bag-stats-strip">
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Bags</div>
+                  <div class="bag-stat-val" id="stat-bag-count">0</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Weight</div>
+                  <div class="bag-stat-val" id="stat-total-weight">0.00 Kg</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Avg Weight</div>
+                  <div class="bag-stat-val" id="stat-avg-weight">0.00 Kg</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Amount</div>
+                  <div class="bag-stat-val" id="stat-total-amount" style="color: var(--primary)">₹0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group col-span-2" style="margin-top: 20px;">
+              <label for="supply-notes">Remarks / Vehicle Number / Notes</label>
+              <input type="text" id="supply-notes" placeholder="e.g. MH-12-AB-3456, Red Onion Grade-A">
+            </div>
+
+            <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn btn-secondary" id="btn-reset-supply">Clear</button>
+              <button type="submit" class="btn btn-primary">Save Supply Entry</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 3.5: Trips & Fuel Log -->
+      <section id="trips-view" class="view-section">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; align-items: start;">
+          <!-- Trip Entry Form Card -->
+          <div class="form-card" style="margin: 0; max-width: 100%;">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">Record Delivery Trip</h3>
+            <form id="trip-entry-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                  <label for="trip-date" class="required">Trip Date</label>
+                  <input type="date" id="trip-date" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-fuel-cost" class="required">Fuel Cost (₹)</label>
+                  <input type="number" id="trip-fuel-cost" step="0.01" min="0" placeholder="e.g. 1500" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-bags" class="required">Total Bags Carried</label>
+                  <input type="number" id="trip-bags" min="0" placeholder="e.g. 45" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-notes">Notes / Vehicle No / Route</label>
+                  <input type="text" id="trip-notes" placeholder="e.g. MH-12-AB-3456, GPay fuel">
+                </div>
+
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-trip">Clear</button>
+                  <button type="submit" class="btn btn-primary">Save Trip</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Trip History Card -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Recent Delivery Trips Log</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th class="text-right">Bags</th>
+                    <th class="text-right">Fuel (₹)</th>
+                    <th>Notes / Vehicle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="trips-history-rows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 3.7: Wholesale Purchases -->
+      <section id="sourcing-view" class="view-section">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; align-items: start;">
+          <!-- Sourcing Entry Form Card -->
+          <div class="form-card" style="margin: 0; max-width: 100%;">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">Record Wholesale Purchase</h3>
+            <form id="sourcing-entry-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                  <label for="sourcing-supplier-select" class="required">Select Supplier Shop</label>
+                  <select id="sourcing-supplier-select" required>
+                    <option value="">-- Choose Supplier --</option>
+                    <option value="CHERIYAVA_NAS">CHERIYAVA NAS</option>
+                    <option value="NOUSHAD_NAS">NOUSHAD NAS</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-date" class="required">Purchase Date</label>
+                  <input type="date" id="sourcing-date" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="sourcing-rate" class="required">Purchase Rate (₹)</label>
+                    <input type="number" id="sourcing-rate" step="0.01" min="0" placeholder="e.g. 18.00" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="sourcing-rate-unit" class="required">Rate Unit</label>
+                    <select id="sourcing-rate-unit" required>
+                      <option value="per Kg">per Kg</option>
+                      <option value="per Bag">per Bag</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-weights" class="required">Bags Weight Input (Rapid Mode)</label>
+                  <textarea id="sourcing-weights" rows="4" placeholder="Enter weights separated by spaces, commas, or enter (e.g. 42 45.5 48,50 49)" required></textarea>
+                  <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    💡 Just type bag weights one by one. Example: 45 42.5 46 51 40 43.5
+                  </p>
+                </div>
+
+                <!-- Smart Parser Results -->
+                <div class="smart-entry-panel">
+                  <div class="smart-entry-header">
+                    <h4>
+                      <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      Real-time Sourcing Bag Weight Calculations
+                    </h4>
+                  </div>
+
+                  <div class="bag-list-preview" id="sourcing-parsed-bags-preview">
+                    <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>
+                  </div>
+
+                  <div class="bag-stats-strip">
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Bags</div>
+                      <div class="bag-stat-val" id="sourcing-stat-bag-count">0</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Weight</div>
+                      <div class="bag-stat-val" id="sourcing-stat-total-weight">0.00 Kg</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Avg Weight</div>
+                      <div class="bag-stat-val" id="sourcing-stat-avg-weight">0.00 Kg</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Cost</div>
+                      <div class="bag-stat-val" id="sourcing-stat-total-amount" style="color: var(--primary)">₹0.00</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-notes">Notes / Remarks / Vehicle</label>
+                  <input type="text" id="sourcing-notes" placeholder="e.g. MH-15-QQ-9999, Lasalgaon APMC">
+                </div>
+
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-sourcing">Clear</button>
+                  <button type="submit" class="btn btn-primary">Save Purchase</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Sourcing History Card -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Wholesale Purchases History Log</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Supplier Shop</th>
+                    <th class="text-right">Bags</th>
+                    <th class="text-right">Weight (Kg)</th>
+                    <th class="text-right">Rate/Unit</th>
+                    <th class="text-right">Total Cost</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sourcing-history-rows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Wholesale Payment Form -->
+          <div class="form-card" style="margin: 0; max-width: 100%; border-left: 4px solid var(--success);">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">💸 Record Payment to Wholesaler</h3>
+            <form id="wholesale-payment-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="wpay-supplier-select" class="required">Supplier</label>
+                    <select id="wpay-supplier-select" required>
+                      <option value="">-- Choose Supplier --</option>
+                      <option value="CHERIYAVA_NAS">CHERIYAVA NAS</option>
+                      <option value="NOUSHAD_NAS">NOUSHAD NAS</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="wpay-date" class="required">Payment Date</label>
+                    <input type="date" id="wpay-date" required>
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="wpay-amount" class="required">Amount Paid (&#8377;)</label>
+                    <input type="number" id="wpay-amount" step="0.01" min="1" placeholder="e.g. 50000" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="wpay-mode">Payment Mode</label>
+                    <select id="wpay-mode">
+                      <option value="Cash">Cash</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="GPay/PhonePe">GPay/PhonePe</option>
+                      <option value="Cheque">Cheque</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="wpay-notes">Notes / Reference</label>
+                  <input type="text" id="wpay-notes" placeholder="e.g. UPI Ref: 123456789">
+                </div>
+                <div style="margin-top: 4px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-wpay">Clear</button>
+                  <button type="submit" class="btn btn-primary" style="background: var(--success);">Save Payment</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Wholesale Payments History -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Payments Made to Wholesalers</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Supplier</th>
+                    <th class="text-right">Amount Paid</th>
+                    <th>Mode</th><th>Notes</th><th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="wpay-history-rows"><!-- Dynamically Populated --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Record Payment -->
+      <section id="payment-view" class="view-section">
+        <div class="form-card">
+          <!-- Dual-tab segment toggle -->
+          <div class="detail-tabs" style="margin-top:-10px; margin-bottom:20px; border-bottom:1px solid var(--border-color);">
+            <button type="button" class="detail-tab active" id="tab-payment-received" style="font-size:13px; padding:10px 15px;">Received from Customer</button>
+            <button type="button" class="detail-tab" id="tab-payment-paid" style="font-size:13px; padding:10px 15px;">Paid to Supplier</button>
+          </div>
+          
+          <input type="hidden" id="payment-type" value="Received">
+
+          <form id="payment-entry-form">
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label for="payment-shop-select" class="required" id="payment-shop-label">Select Customer Shop</label>
+                <select id="payment-shop-select" required>
+                  <option value="">-- Choose a Shop --</option>
+                </select>
+                <p id="payment-due-warning" style="font-size:12px; color: var(--danger); font-weight:600; margin-top:4px; display:none;">
+                  Outstanding balance: ₹0.00
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-date" class="required" id="payment-date-label">Date Received</label>
+                <input type="date" id="payment-date" required>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-amount" class="required" id="payment-amount-label">Amount Received (₹)</label>
+                <input type="number" id="payment-amount" step="0.01" min="0.01" placeholder="e.g. 15000" required>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-mode" class="required">Payment Mode</label>
+                <select id="payment-mode" required>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="GPay/PhonePe">GPay / PhonePe</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-reference">Reference No. / UTR No.</label>
+                <input type="text" id="payment-reference" placeholder="e.g. TXN987654321">
+              </div>
+
+              <div class="form-group col-span-2">
+                <label for="payment-notes">Notes / Remarks</label>
+                <input type="text" id="payment-notes" placeholder="e.g. Handed over to self, final settlement part">
+              </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn btn-secondary" id="btn-reset-payment">Clear</button>
+              <button type="submit" class="btn btn-primary">Record Payment</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 5: Backup & Data Management -->
+      <section id="backup-view" class="view-section">
+
+        <!-- Backup Reminder Banner -->
+        <div id="backup-reminder-banner" style="display:none; background: linear-gradient(135deg,#ff4444,#cc0000); color:#fff; border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(255,68,68,0.35);">
+          <div style="font-size:32px; flex-shrink:0;">⚠️</div>
+          <div>
+            <div style="font-weight:700; font-size:16px;">Backup Needed!</div>
+            <div id="backup-reminder-text" style="font-size:13px; opacity:0.9; margin-top:2px;">You haven't backed up your data recently. Tap the green button below to send a backup via WhatsApp.</div>
+          </div>
+        </div>
+
+        <div class="manager-grid">
+
+          <!-- PRIMARY: Share/WhatsApp Backup Card -->
+          <div class="manager-card" style="border-left: 4px solid #25d366; background: linear-gradient(135deg, rgba(37,211,102,0.07), transparent);">
+            <div class="manager-card-info">
+              <h3 style="color:#25d366;">📤 Share Backup via WhatsApp</h3>
+              <p>Tap the button below. Your phone will open WhatsApp (or any app) so you can send the backup file to <b>yourself or a trusted person</b>. This is the safest way to keep your data!</p>
+              <div id="last-backup-info" style="margin-top:10px; font-size:12px; font-weight:600; padding:8px 12px; border-radius:8px; background:rgba(0,0,0,0.06);">Last backup: Never</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+              <button class="btn btn-primary" id="btn-share-backup" style="width:100%; justify-content:center; background:#25d366; border-color:#25d366; font-size:16px; padding:14px; border-radius:12px;">
+                <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 0C5.373 0 0 5.373 0 12c0 2.117.552 4.1 1.514 5.824L0 24l6.335-1.663A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 11.999 0zm.001 21.818a9.818 9.818 0 01-5.001-1.367l-.36-.214-3.753.984 1.003-3.664-.234-.374A9.818 9.818 0 012.181 12C2.181 6.58 6.58 2.182 12 2.182c5.42 0 9.819 4.398 9.819 9.818 0 5.421-4.399 9.818-9.819 9.818z"/></svg>
+                Share via WhatsApp / Any App
+              </button>
+              <button class="btn btn-secondary" id="btn-copy-backup" style="width:100%; justify-content:center; border-color:#25d366; color:#25d366;">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                Copy Backup Text (paste in WhatsApp/Notes)
+              </button>
+              <button class="btn btn-secondary" id="btn-download-backup" style="width:100%; justify-content:center;">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Backup File (.json)
+              </button>
+            </div>
+          </div>
+
+          <!-- Restore Card -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>🔄 Restore From Backup</h3>
+              <p>To restore: save the backup file to your phone first, then tap below to select it. <b>WARNING:</b> This will replace all current data.</p>
+            </div>
+            <div class="file-upload-wrapper">
+              <input type="file" id="backup-file-input" class="file-upload-input" accept=".json,.txt">
+              <div class="file-upload-btn">
+                <svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Select Backup File to Restore</span>
+              </div>
+            </div>
+            <div style="margin-top:12px; background:rgba(255,200,0,0.1); border:1px solid var(--warning); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--warning);">
+              💡 <b>Tip:</b> Open your WhatsApp backup message → Download the file → Come back and select it here.
+            </div>
+          </div>
+
+          <!-- Export CSV Summaries -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>📊 Export Business Sheets (CSV)</h3>
+              <p>Download or share your records as spreadsheet files that open in Excel or Google Sheets.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button class="btn btn-secondary" id="btn-export-excel" style="width:100%; justify-content:center; border-color:var(--success); color:var(--success);">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                Accounts Sheet
+              </button>
+              <button class="btn btn-secondary" id="btn-export-trips" style="width:100%; justify-content:center; border-color:var(--info); color:var(--info);">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Delivery Trips Log
+              </button>
+              <button class="btn btn-secondary" id="btn-export-sourcing" style="width:100%; justify-content:center; border-color:var(--warning); color:var(--warning);">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                Wholesale Purchases Log
+              </button>
+              <button class="btn btn-secondary" id="btn-export-wpay" style="width:100%; justify-content:center; border-color:var(--success); color:var(--success);">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="4" x2="7" y2="20"/></svg>
+                Wholesaler Payments Log
+              </button>
+              <button class="btn btn-primary" id="btn-export-all" style="width:100%; justify-content:center; background:linear-gradient(135deg,var(--primary),var(--accent));">
+                <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                ⭐ Complete Business Report (All Data)
+              </button>
+            </div>
+          </div>
+
+          <!-- Download Last 2 Weeks Card -->
+          <div class="manager-card" style="border-left: 4px solid var(--accent);">
+            <div class="manager-card-info">
+              <h3>📅 Last 2 Weeks Data</h3>
+              <p>Quick export of only the <b>last 14 days</b> — sales, purchases, payments, trips in one file.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-export-2weeks" style="width:100%; justify-content:center; background:var(--accent); font-size:15px; padding:13px; border-radius:12px;">
+              📅 Download Last 2 Weeks Report
+            </button>
+          </div>
+
+          <!-- Reset Card -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>⚙️ App Control</h3>
+              <p>Load demo data to see how the app works, or erase all data. <b>Always take a backup before erasing!</b></p>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <button class="btn btn-secondary" id="btn-load-demo" style="justify-content:center;">Load Demo Data</button>
+              <button class="btn btn-danger" id="btn-clear-all" style="justify-content:center;">Erase All Data</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal 1: Add/Edit Shop Form -->
+  <div class="modal-overlay" id="shop-form-modal">
+    <div class="modal-window" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h2 id="shop-modal-title">Add New Shop</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-shop-modal">
+          <svg style="width:24px; height:24px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="shop-details-form">
+        <div class="modal-body">
+          <input type="hidden" id="edit-shop-id">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group">
+              <label for="shop-name" class="required">Shop Name</label>
+              <input type="text" id="shop-name" placeholder="e.g. Mahavir Onion Traders" required>
+            </div>
+            <div class="form-group">
+              <label for="shop-owner" class="required">Owner Name</label>
+              <input type="text" id="shop-owner" placeholder="e.g. Rajesh Kumar" required>
+            </div>
+            <div class="form-group">
+              <label for="shop-type" class="required">Account Type</label>
+              <select id="shop-type" required>
+                <option value="Customer">Customer (We sell to them)</option>
+                <option value="Supplier">Supplier (We buy in bulk from them)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="shop-phone">Phone Number</label>
+              <input type="tel" id="shop-phone" placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group">
+              <label for="shop-address">Address / Market Location</label>
+              <input type="text" id="shop-address" placeholder="e.g. APMC Market, Shop 42">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-shop-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-shop-modal">Save Shop</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Detailed Shop Ledger Account (Statement) -->
+  <div class="modal-overlay" id="shop-ledger-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h2>Shop Ledger Statement</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-ledger-modal">
+          <svg style="width:24px; height:24px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Print layout header -->
+        <div class="ledger-header" id="modal-ledger-header"></div>
+
+        <!-- Ledger Action Tabs -->
+        <div class="detail-tabs">
+          <button class="detail-tab active" data-pane="tab-pane-supplies">Supplies</button>
+          <button class="detail-tab" data-pane="tab-pane-payments">Payments</button>
+          <button class="detail-tab" data-pane="tab-pane-statement">Ledger Balance Sheet</button>
+        </div>
+
+        <!-- Tab 1: Supplies History Pane -->
+        <div class="tab-pane active" id="tab-pane-supplies">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-supplies-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-supplies-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Payments History Pane -->
+        <div class="tab-pane" id="tab-pane-payments">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-payments-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-payments-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Detailed Ledger Statement (Running Balances) -->
+        <div class="tab-pane" id="tab-pane-statement">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-statement-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-statement-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Print-only signature section -->
+        <div class="print-only-signature">
+          <div class="print-sig-box">Merchant Signature</div>
+          <div class="print-sig-box">Supplier Signature</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-print-statement">
+          <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print / Save PDF
+        </button>
+        <button class="btn btn-secondary" id="btn-close-ledger-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Link App Engine Javascript -->
+  <script>
+/* app.js - Client-Side App Engine for Onion Supply Ledger */
+
+// App State Management
+const State = {
+  theme: 'light',
+  currentView: 'dashboard-view',
+  shops: {},
+  transactions: [],
+  payments: [],
+  trips: [],
+  purchases: [],
+  wholesalePayments: [],
+  activeLedgerShopId: null
+};
+
+// --- DATA CONSTANTS & DEMO SYSTEM ---
+const DEMO_DATA = {
+  version: "1.0.0",
+  shops: {
+    "shop-1": { id: "shop-1", name: "Rajesh Onion Agency", owner: "Rajesh Kumar", phone: "9876543210", address: "APMC Market, G-Block, Shop 12", createdAt: "2026-05-01", type: "Customer" },
+    "shop-2": { id: "shop-2", name: "Patel Vegetable Traders", owner: "Kirit Patel", phone: "9812345678", address: "Subhash Mandi, Shop 4B", createdAt: "2026-05-10", type: "Customer" },
+    "shop-3": { id: "shop-3", name: "Star Hoteliers & Suppliers", owner: "Anil Deshmukh", phone: "9001122334", address: "Industrial Zone, Warehouse 9", createdAt: "2026-05-15", type: "Customer" },
+    "shop-4": { id: "shop-4", name: "Nashik Wholesale Farm", owner: "Shivaji Rao", phone: "9422012345", address: "Lasalgaon Mandi, Nashik", createdAt: "2026-05-20", type: "Supplier" }
+  },
+  transactions: [
+    { id: "tx-1", shopId: "shop-1", date: "2026-06-01", ratePerKg: 28.50, bagWeights: [45.2, 46.8, 48.0, 42.5, 51.0, 44.0, 45.5, 47.1, 48.2, 49.0], totalBags: 10, totalWeight: 467.3, totalAmount: 13318.05, notes: "Grade-A Onions" },
+    { id: "tx-2", shopId: "shop-1", date: "2026-06-05", ratePerKg: 29.00, bagWeights: [50.5, 51.2, 49.8, 52.0, 48.6, 50.1, 51.3, 47.8, 49.5, 51.0, 52.2, 49.1, 50.4, 51.0, 50.5], totalBags: 15, totalWeight: 755.0, totalAmount: 21895.00, notes: "Truck MH-15-EG-4567" },
+    { id: "tx-3", shopId: "shop-2", date: "2026-06-08", ratePerKg: 31.00, bagWeights: [41.2, 42.0, 40.5, 43.1, 44.5, 42.8, 43.0, 41.9, 42.2, 40.8], totalBags: 10, totalWeight: 422.0, totalAmount: 13082.00, notes: "Medium Size bags" },
+    { id: "tx-4", shopId: "shop-3", date: "2026-06-12", ratePerKg: 26.50, bagWeights: [52.0, 53.5, 54.1, 51.8, 52.9, 50.5, 55.0, 53.8, 52.4, 53.0, 51.9, 52.2, 54.0, 53.1, 52.8, 51.0, 50.8, 52.2, 53.0, 52.1], totalBags: 20, totalWeight: 1052.1, totalAmount: 27880.65, notes: "Hotel Jumbo Size Grade" },
+    { id: "tx-5", shopId: "shop-1", date: "2026-06-18", ratePerKg: 30.00, bagWeights: [45.0, 46.2, 48.0, 44.5, 47.1, 48.3, 49.0, 45.8, 46.0, 47.2, 48.1, 46.5], totalBags: 12, totalWeight: 561.7, totalAmount: 16851.00, notes: "APMC Delivery" }
+  ],
+  payments: [
+    { id: "pay-1", shopId: "shop-1", date: "2026-06-03", amount: 10000, mode: "Bank Transfer", reference: "UPI9876543", notes: "Advance payment", type: "Received" },
+    { id: "pay-2", shopId: "shop-1", date: "2026-06-10", amount: 20000, mode: "Cash", reference: "Handed to self", notes: "Part payment", type: "Received" },
+    { id: "pay-3", shopId: "shop-2", date: "2026-06-15", amount: 8000, mode: "GPay/PhonePe", reference: "GP7748291", notes: "Against invoice 0608", type: "Received" },
+    { id: "pay-4", shopId: "shop-3", date: "2026-06-17", amount: 15000, mode: "Cheque", reference: "CHQ#909281", notes: "State Bank of India", type: "Received" },
+    { id: "pay-5", shopId: "shop-4", date: "2026-06-20", amount: 50000, mode: "Bank Transfer", reference: "TXN1029384", notes: "Bulk Purchase Advance", type: "Paid" }
+  ],
+  trips: [
+    { id: "trip-1", date: "2026-06-01", fuelCost: 1200, totalBags: 10, notes: "MH-15-EG-4567, Rajesh Onion" },
+    { id: "trip-2", date: "2026-06-05", fuelCost: 1500, totalBags: 15, notes: "MH-15-EG-4567, Rajesh Onion" },
+    { id: "trip-3", date: "2026-06-08", fuelCost: 800, totalBags: 10, notes: "MH-12-AB-3456, Patel Traders" },
+    { id: "trip-4", date: "2026-06-12", fuelCost: 2000, totalBags: 20, notes: "MH-15-EG-1234, Star Hoteliers" },
+    { id: "trip-5", date: "2026-06-18", fuelCost: 1100, totalBags: 12, notes: "MH-15-EG-4567, Rajesh Onion" },
+    { id: "trip-6", date: "2026-06-20", fuelCost: 2500, totalBags: 100, notes: "Bulk Onion Transport MH-15-QQ-9999" }
+  ],
+  purchases: [
+    { id: "pur-1", supplierId: "shop-4", date: "2026-06-20", rate: 18.00, rateUnit: "per Kg", totalBags: 100, totalWeight: 4500, totalAmount: 81000, notes: "Lasalgaon APMC, Grade-A" }
+  ]
+};
+
+// --- INITIALIZATION & ROUTING ---
+window.addEventListener('DOMContentLoaded', () => {
+  initApp();
+});
+
+function initApp() {
+  loadData();
+  setupUI();
+  setupRouting();
+  setupFormHandlers();
+  setupBagParser();
+  setupTheme();
+  setupBackupHandlers();
+  
+  // Render views based on current state
+  navigate(State.currentView);
+  showToast("Application loaded successfully", "success");
+}
+
+// State Persistence
+function loadData() {
+  try {
+    const raw = localStorage.getItem('onion_ledger_db');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      State.shops = parsed.shops || {};
+      // Backfill default shop types
+      Object.keys(State.shops).forEach(id => {
+        if (!State.shops[id].type) {
+          State.shops[id].type = 'Customer';
+        }
+      });
+      State.transactions = parsed.transactions || [];
+      State.payments = parsed.payments || [];
+      // Backfill default payment types
+      State.payments.forEach(p => {
+        if (!p.type) {
+          p.type = 'Received';
+        }
+      });
+      State.trips = parsed.trips || [];
+      State.purchases = parsed.purchases || [];
+      State.wholesalePayments = parsed.wholesalePayments || [];
+    } else {
+      // First-time load: Seed with sample demo data
+      loadDemoData(false);
+    }
+  } catch (err) {
+    console.error("Error loading data from LocalStorage:", err);
+    showToast("Error reading storage. Starting fresh.", "danger");
+  }
+}
+
+function saveData() {
+  try {
+    const payload = {
+      version: "1.0.0",
+      shops: State.shops,
+      transactions: State.transactions,
+      payments: State.payments,
+      trips: State.trips,
+      purchases: State.purchases,
+      wholesalePayments: State.wholesalePayments
+    };
+    localStorage.setItem('onion_ledger_db', JSON.stringify(payload));
+  } catch (err) {
+    console.error("Error writing to LocalStorage:", err);
+    showToast("Failed to save data. Check browser storage space.", "danger");
+  }
+}
+
+function loadDemoData(notifyUser = true) {
+  State.shops = JSON.parse(JSON.stringify(DEMO_DATA.shops));
+  State.transactions = JSON.parse(JSON.stringify(DEMO_DATA.transactions));
+  State.payments = JSON.parse(JSON.stringify(DEMO_DATA.payments));
+  State.trips = JSON.parse(JSON.stringify(DEMO_DATA.trips));
+  State.purchases = JSON.parse(JSON.stringify(DEMO_DATA.purchases));
+  State.wholesalePayments = [];
+  saveData();
+  refreshAllViews();
+  if (notifyUser) {
+    showToast("Demo data loaded successfully!", "success");
+  }
+}
+
+function eraseAllData() {
+  State.shops = {};
+  State.transactions = [];
+  State.payments = [];
+  State.trips = [];
+  State.purchases = [];
+  State.wholesalePayments = [];
+  saveData();
+  refreshAllViews();
+  showToast("All data erased. Fresh database created.", "warning");
+}
+
+// Routing & Tabs Setup
+function setupRouting() {
+  const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
+  menuItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = item.getAttribute('data-target');
+      
+      // Update sidebar highlight
+      menuItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      
+      navigate(target);
+    });
+  });
+}
+
+function navigate(viewId) {
+  State.currentView = viewId;
+  
+  // Hide all sections, show active
+  document.querySelectorAll('.view-section').forEach(sec => {
+    sec.classList.remove('active');
+  });
+  const activeSec = document.getElementById(viewId);
+  if (activeSec) {
+    activeSec.classList.add('active');
+  }
+
+  // Update Page Title in header
+  const titleMap = {
+    'dashboard-view': 'Dashboard Overview',
+    'shops-view': 'Shops & Outstanding Accounts',
+    'supply-view': 'Record Onion Supply Entry',
+    'trips-view': 'Trips & Fuel Log',
+    'sourcing-view': 'Wholesale Purchases',
+    'payment-view': 'Record Payment Received',
+    'backup-view': 'Backup & Data Management'
+  };
+  document.getElementById('current-view-title').textContent = titleMap[viewId] || 'Onion Ledger';
+
+  // Load view-specific content
+  if (viewId === 'dashboard-view') {
+    renderDashboard();
+  } else if (viewId === 'shops-view') {
+    renderShops();
+  } else if (viewId === 'supply-view') {
+    populateShopDropdowns('supply-shop-select', 'Customer');
+    resetSupplyForm();
+  } else if (viewId === 'trips-view') {
+    renderTripsView();
+  } else if (viewId === 'sourcing-view') {
+    renderSourcingView();
+  } else if (viewId === 'payment-view') {
+    const payType = document.getElementById('payment-type') ? document.getElementById('payment-type').value : 'Received';
+    populateShopDropdowns('payment-shop-select', payType === 'Paid' ? 'Supplier' : 'Customer');
+    resetPaymentForm();
+  }
+}
+
+function refreshAllViews() {
+  if (State.currentView === 'dashboard-view') {
+    renderDashboard();
+  } else if (State.currentView === 'shops-view') {
+    renderShops();
+  } else if (State.currentView === 'sourcing-view') {
+    renderSourcingTable();
+  }
+  populateShopDropdowns('supply-shop-select', 'Customer');
+  const payType = document.getElementById('payment-type') ? document.getElementById('payment-type').value : 'Received';
+  populateShopDropdowns('payment-shop-select', payType === 'Paid' ? 'Supplier' : 'Customer');
+  populateShopDropdowns('sourcing-supplier-select', 'Supplier');
+}
+
+// --- SETUP GENERAL UI (Theme, Toasts, Date) ---
+function setupUI() {
+  // Set current date in header
+  const today = new Date();
+  const formatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+  document.getElementById('today-date-badge').innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height:14px; margin-right:6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    ${today.toLocaleDateString('en-US', formatOptions)}
+  `;
+}
+
+function setupTheme() {
+  const toggleBtn = document.getElementById('theme-toggle-header');
+  const storedTheme = localStorage.getItem('onion_ledger_theme') || 'light';
+  State.theme = storedTheme;
+  document.documentElement.setAttribute('data-theme', storedTheme);
+
+  toggleBtn.addEventListener('click', () => {
+    const nextTheme = State.theme === 'light' ? 'dark' : 'light';
+    State.theme = nextTheme;
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('onion_ledger_theme', nextTheme);
+  });
+}
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  // Decide icon based on type
+  let icon = '';
+  if (type === 'success') {
+    icon = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+  } else if (type === 'danger') {
+    icon = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+  } else {
+    icon = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+  }
+
+  toast.innerHTML = `${icon} <span>${message}</span>`;
+  container.appendChild(toast);
+
+  // Auto remove toast
+  setTimeout(() => {
+    toast.style.animation = 'slideIn 0.3s reverse forwards';
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    });
+  }, 4000);
+}
+
+// Helpers for calculations
+function formatCurrency(val) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  }).format(val);
+}
+
+function calculateShopBalance(shopId) {
+  const shop = State.shops[shopId];
+  const isSupplier = shop && shop.type === 'Supplier';
+
+  if (isSupplier) {
+    // Total Purchases from Standalone Sourcing (Debits for supplier balance)
+    const totalDebits = State.purchases
+      .filter(pur => pur.supplierId === shopId)
+      .reduce((sum, pur) => sum + (pur.totalAmount || 0), 0);
+
+    // Total Payments paid to supplier (Credits for supplier balance)
+    const totalCredits = State.payments
+      .filter(p => p.shopId === shopId && p.type === 'Paid')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    return {
+      debits: totalDebits,
+      credits: totalCredits,
+      balance: totalDebits - totalCredits // positive means we owe them
+    };
+  } else {
+    // Customer
+    // Total Supplies (Debits)
+    const totalDebits = State.transactions
+      .filter(tx => tx.shopId === shopId)
+      .reduce((sum, tx) => sum + tx.totalAmount, 0);
+
+    // Total Payments received from customer (Credits)
+    const totalCredits = State.payments
+      .filter(p => p.shopId === shopId && (p.type || 'Received') === 'Received')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    return {
+      debits: totalDebits,
+      credits: totalCredits,
+      balance: totalDebits - totalCredits // positive means they owe us
+    };
+  }
+}
+
+// Dropdown utility
+function populateShopDropdowns(elementId, filterType = null) {
+  const select = document.getElementById(elementId);
+  if (!select) return;
+  
+  // Clear but keep first item
+  const placeholder = select.querySelector('option[value=""]') || document.createElement('option');
+  placeholder.value = "";
+  if (filterType === 'Supplier') {
+    placeholder.textContent = '-- Choose Supplier --';
+  } else {
+    placeholder.textContent = '-- Choose a Shop --';
+  }
+  select.innerHTML = '';
+  select.appendChild(placeholder);
+
+  // For sourcing dropdown: always add the two fixed supplier options first
+  if (elementId === 'sourcing-supplier-select') {
+    const cheriyava = document.createElement('option');
+    cheriyava.value = 'CHERIYAVA_NAS';
+    cheriyava.textContent = 'CHERIYAVA NAS';
+    select.appendChild(cheriyava);
+    const noushad = document.createElement('option');
+    noushad.value = 'NOUSHAD_NAS';
+    noushad.textContent = 'NOUSHAD NAS';
+    select.appendChild(noushad);
+  }
+  
+  // Add options from State.shops
+  const shopList = Object.values(State.shops)
+    .filter(shop => !filterType || shop.type === filterType)
+    .sort((a, b) => a.name.localeCompare(b.name));
+    
+  shopList.forEach(shop => {
+    const balData = calculateShopBalance(shop.id);
+    const bal = balData.balance;
+    const isSupplier = shop.type === 'Supplier';
+    const label = isSupplier ? 'Owed: ₹' : 'Due: ₹';
+    const suffix = bal > 0 ? ` (${label}${bal.toFixed(2)})` : '';
+    const option = document.createElement('option');
+    option.value = shop.id;
+    option.textContent = `${shop.name} - ${shop.owner}${suffix}`;
+    select.appendChild(option);
+  });
+}
+
+
+// --- DASHBOARD CONTROLLER ---
+function renderDashboard() {
+  const shopCount = Object.keys(State.shops).length;
+  
+  // Calculate Totals
+  let totalBags = 0;
+  let totalWeight = 0;
+  let totalSales = 0;
+  let totalPaid = 0;
+
+  State.transactions.forEach(tx => {
+    totalBags += tx.totalBags;
+    totalWeight += tx.totalWeight;
+    totalSales += tx.totalAmount;
+  });
+
+  State.payments.forEach(p => {
+    if ((p.type || 'Received') === 'Received') {
+      totalPaid += p.amount;
+    }
+  });
+
+  const totalOutstanding = totalSales - totalPaid;
+
+  // Calculate Amount to Give (net owed to all wholesale suppliers)
+  const totalPurchaseCost = State.purchases.reduce((sum, pur) => sum + (pur.totalAmount || 0), 0);
+  const totalWholesalePaid = State.wholesalePayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+    + State.payments.filter(p => p.type === 'Paid').reduce((sum, p) => sum + p.amount, 0);
+  const totalOwedToSuppliers = Math.max(0, totalPurchaseCost - totalWholesalePaid);
+  const totalPaymentsToSuppliers = totalWholesalePaid;
+
+  // Set KPIs text
+  document.getElementById('kpi-shops-val').textContent = shopCount;
+  document.getElementById('kpi-bags-val').textContent = totalBags;
+  document.getElementById('kpi-bags-sub').textContent = `${(totalWeight / 1000).toFixed(2)} Tons Total Weight`;
+  document.getElementById('kpi-sales-val').textContent = formatCurrency(totalSales);
+  document.getElementById('kpi-due-val').textContent = formatCurrency(totalOutstanding);
+  document.getElementById('kpi-due-sub').textContent = `Total paid: ${formatCurrency(totalPaid)}`;
+  
+  const kpiGiveVal = document.getElementById('kpi-give-val');
+  if (kpiGiveVal) kpiGiveVal.textContent = formatCurrency(totalOwedToSuppliers);
+  const kpiGiveSub = document.getElementById('kpi-give-sub');
+  if (kpiGiveSub) kpiGiveSub.textContent = `Purchased: ${formatCurrency(totalPurchaseCost)} | Paid: ${formatCurrency(totalPaymentsToSuppliers)}`;
+
+  // Calculate Logistics metrics
+  let weeklyTrips = 0;
+  let weeklyFuel = 0;
+  let totalTrips = State.trips.length;
+  let totalTripBags = 0;
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  
+  State.trips.forEach(trip => {
+    const tripBags = trip.totalBags || 0;
+    const tripFuel = trip.fuelCost || 0;
+    totalTripBags += tripBags;
+
+    const tripDate = new Date(trip.date);
+    if (tripDate >= oneWeekAgo) {
+      weeklyTrips += 1;
+      weeklyFuel += tripFuel;
+    }
+  });
+
+  const avgBagsPerTrip = totalTrips > 0 ? (totalTripBags / totalTrips) : 0;
+  let totalFuelCost = State.trips.reduce((sum, trip) => sum + (trip.fuelCost || 0), 0);
+
+  // Update Logistics UI Elements
+  document.getElementById('logistics-trips-val').textContent = totalTrips;
+  document.getElementById('logistics-trips-sub').textContent = `${weeklyTrips} trips made this week`;
+  
+  document.getElementById('logistics-fuel-val').textContent = formatCurrency(totalFuelCost);
+  document.getElementById('logistics-fuel-sub').textContent = `${formatCurrency(weeklyFuel)} spent this week`;
+
+  document.getElementById('logistics-avg-bags-val').textContent = avgBagsPerTrip.toFixed(1);
+
+  // Set dashboard recent supplies rows
+  const recentList = [...State.transactions]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5);
+
+  const tbody = document.getElementById('dashboard-recent-supplies');
+  tbody.innerHTML = '';
+
+  if (recentList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic;">No supply entries recorded yet.</td></tr>`;
+  } else {
+    recentList.forEach(tx => {
+      const shop = State.shops[tx.shopId] || { name: "Unknown Shop" };
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${tx.date}</td>
+        <td style="font-weight: 600;">${shop.name}</td>
+        <td class="text-right">${tx.totalBags}</td>
+        <td class="text-right">${tx.totalWeight.toFixed(1)}</td>
+        <td class="text-right">₹${tx.ratePerKg.toFixed(2)}</td>
+        <td class="text-right text-success" style="font-weight:700;">${formatCurrency(tx.totalAmount)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Draw Charts
+  drawSalesChart();
+  drawOutstandingChart();
+}
+
+// Generate Dynamic SVG Bar Charts for Dashboard (Sales & Payments flow)
+function drawSalesChart() {
+  const chartContainer = document.getElementById('sales-chart-container');
+  if (!chartContainer) return;
+  chartContainer.innerHTML = ''; // Clear
+
+  // 1. Group transactions & payments by month for last 6 months
+  const months = [];
+  const today = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    months.push({
+      label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      sales: 0,
+      payments: 0
+    });
+  }
+
+  State.transactions.forEach(tx => {
+    const txDate = new Date(tx.date);
+    months.forEach(m => {
+      if (txDate.getFullYear() === m.year && txDate.getMonth() === m.month) {
+        m.sales += tx.totalAmount;
+      }
+    });
+  });
+
+  State.payments.forEach(p => {
+    if ((p.type || 'Received') === 'Received') {
+      const pDate = new Date(p.date);
+      months.forEach(m => {
+        if (pDate.getFullYear() === m.year && pDate.getMonth() === m.month) {
+          m.payments += p.amount;
+        }
+      });
+    }
+  });
+
+  // Calculate scaling factors
+  const maxVal = Math.max(...months.map(m => Math.max(m.sales, m.payments)), 10000);
+  const chartHeight = 200;
+  const paddingBottom = 25;
+  const paddingTop = 20;
+  const usableHeight = chartHeight - paddingBottom - paddingTop;
+
+  // Build SVG Content
+  let barsHtml = '';
+  const barWidth = 25;
+  const groupSpacing = 45;
+  const svgWidth = months.length * (barWidth * 2 + groupSpacing) + 20;
+
+  months.forEach((m, idx) => {
+    const xGroup = idx * (barWidth * 2 + groupSpacing) + 30;
+    
+    // Scale bar heights
+    const salesHeight = (m.sales / maxVal) * usableHeight;
+    const paymentsHeight = (m.payments / maxVal) * usableHeight;
+
+    const ySales = chartHeight - paddingBottom - salesHeight;
+    const yPayments = chartHeight - paddingBottom - paymentsHeight;
+
+    // SVG elements: Green bar for Sales, Teal for Payments
+    barsHtml += `
+      <!-- Sales Bar (Green) -->
+      <rect class="bar-chart-rect" x="${xGroup}" y="${ySales}" width="${barWidth}" height="${salesHeight}" rx="4" fill="var(--primary)" data-tooltip="Sales: ₹${m.sales.toFixed(0)}"></rect>
+      <!-- Payments Bar (Teal) -->
+      <rect class="bar-chart-rect" x="${xGroup + barWidth + 4}" y="${yPayments}" width="${barWidth}" height="${paymentsHeight}" rx="4" fill="var(--accent)" data-tooltip="Paid: ₹${m.payments.toFixed(0)}"></rect>
+      <!-- Month Label -->
+      <text x="${xGroup + barWidth}" y="${chartHeight - 6}" font-size="10" font-family="var(--font-heading)" font-weight="600" text-anchor="middle" fill="var(--text-secondary)">${m.label}</text>
+    `;
+  });
+
+  // SVG grid lines and outline
+  const svgWrapper = `
+    <svg width="100%" height="100%" viewBox="0 0 ${svgWidth} ${chartHeight}" style="overflow: visible;">
+      <!-- Grid lines -->
+      <line x1="10" y1="${chartHeight - paddingBottom}" x2="${svgWidth}" y2="${chartHeight - paddingBottom}" stroke="var(--border-color)" stroke-width="1"></line>
+      <line x1="10" y1="${chartHeight - paddingBottom - usableHeight / 2}" x2="${svgWidth}" y2="${chartHeight - paddingBottom - usableHeight / 2}" stroke="var(--border-color)" stroke-dasharray="4,4" stroke-width="1"></line>
+      <line x1="10" y1="${paddingTop}" x2="${svgWidth}" y2="${paddingTop}" stroke="var(--border-color)" stroke-dasharray="4,4" stroke-width="1"></line>
+      
+      <!-- Max limit label -->
+      <text x="10" y="${paddingTop - 5}" font-size="9" fill="var(--text-muted)" font-weight="600">Max: ₹${(maxVal/1000).toFixed(0)}K</text>
+      
+      ${barsHtml}
+    </svg>
+    <div class="chart-tooltip" id="sales-tooltip"></div>
+    <div style="display: flex; gap: 15px; font-size:11px; margin-top:10px; justify-content:center;">
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:var(--primary); display:inline-block;"></span> Sales</span>
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:var(--accent); display:inline-block;"></span> Payments</span>
+    </div>
+  `;
+
+  chartContainer.innerHTML = svgWrapper;
+
+  // Add Tooltips listeners
+  setupChartTooltips(chartContainer, '#sales-tooltip');
+}
+
+function drawOutstandingChart() {
+  const container = document.getElementById('pie-chart-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Get top 5 customer shops with highest balances
+  const balancesList = Object.values(State.shops)
+    .filter(shop => shop.type !== 'Supplier')
+    .map(shop => {
+      return {
+        name: shop.name,
+        balance: calculateShopBalance(shop.id).balance
+      };
+    }).filter(b => b.balance > 0)
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, 5);
+
+  if (balancesList.length === 0) {
+    container.innerHTML = `
+      <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color: var(--text-muted); font-style:italic;">
+        <svg style="width:48px; height:48px; opacity:0.4; margin-bottom:10px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+        All accounts fully settled! No due balances.
+      </div>`;
+    return;
+  }
+
+  // Draw a horizontal bar summary listing the top balances cleanly
+  let barsHtml = '';
+  const totalSum = balancesList.reduce((sum, item) => sum + item.balance, 0);
+
+  balancesList.forEach((item, idx) => {
+    const percentage = totalSum > 0 ? (item.balance / totalSum) * 100 : 0;
+    barsHtml += `
+      <div style="margin-bottom: 14px; width: 100%">
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; margin-bottom:4px;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.name}</span>
+          <span class="text-danger" style="font-weight:700;">₹${item.balance.toLocaleString('en-IN', {maximumFractionDigits:0})}</span>
+        </div>
+        <div style="width: 100%; height: 8px; background: var(--border-color); border-radius:4px; overflow:hidden;">
+          <div style="width: ${percentage}%; height:100%; background: linear-gradient(90deg, var(--danger), #ff8787); border-radius:4px;"></div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = `<div style="width:100%; display:flex; flex-direction:column; justify-content:center;">${barsHtml}</div>`;
+}
+
+function setupChartTooltips(chartContainer, tooltipSelector) {
+  const tooltip = chartContainer.querySelector(tooltipSelector);
+  const rects = chartContainer.querySelectorAll('.bar-chart-rect');
+
+  rects.forEach(rect => {
+    rect.addEventListener('mouseenter', (e) => {
+      const tipText = rect.getAttribute('data-tooltip');
+      tooltip.textContent = tipText;
+      tooltip.style.opacity = 1;
+    });
+
+    rect.addEventListener('mousemove', (e) => {
+      const containerRect = chartContainer.getBoundingClientRect();
+      const x = e.clientX - containerRect.left + 10;
+      const y = e.clientY - containerRect.top - 40;
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y}px`;
+    });
+
+    rect.addEventListener('mouseleave', () => {
+      tooltip.style.opacity = 0;
+    });
+  });
+}
+
+
+// --- SHOPS ACCOUNTING VIEW ---
+function renderShops() {
+  const searchInput = document.getElementById('shop-search');
+  const sortSelect = document.getElementById('shop-filter-sort');
+  const container = document.getElementById('shops-list-container');
+  if (!container) return;
+
+  const q = searchInput.value.toLowerCase().trim();
+  const sortOption = sortSelect.value;
+
+  // Filter shops
+  let filtered = Object.values(State.shops).filter(shop => {
+    return shop.name.toLowerCase().includes(q) || shop.owner.toLowerCase().includes(q) || shop.phone.includes(q);
+  });
+
+  // Calculate balance for each shop for sorting
+  const shopsWithBalances = filtered.map(shop => {
+    const balData = calculateShopBalance(shop.id);
+    return { ...shop, ...balData };
+  });
+
+  // Sort shops
+  shopsWithBalances.sort((a, b) => {
+    if (sortOption === 'name-asc') return a.name.localeCompare(b.name);
+    if (sortOption === 'name-desc') return b.name.localeCompare(a.name);
+    if (sortOption === 'balance-desc') return b.balance - a.balance;
+    if (sortOption === 'balance-asc') return a.balance - b.balance;
+    return 0;
+  });
+
+  // Render Grid
+  container.innerHTML = '';
+  
+  if (shopsWithBalances.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary); background: var(--bg-card); border-radius: var(--border-radius-md); border:1px solid var(--border-color);">
+        <p style="font-size:14px; font-style:italic;">No shops found matching your filters.</p>
+        <button class="btn btn-primary btn-sm" id="btn-create-first-shop" style="margin-top:12px;">Add New Shop</button>
+      </div>`;
+    
+    // Quick handle for nested action
+    const btn = document.getElementById('btn-create-first-shop');
+    if (btn) btn.addEventListener('click', openAddShopModal);
+    return;
+  }
+
+  shopsWithBalances.forEach(shop => {
+    const card = document.createElement('div');
+    
+    // Conditional styling depending on debt and shop type
+    const isSupplier = shop.type === 'Supplier';
+    const isDue = shop.balance > 0;
+    
+    let balanceClass = '';
+    let balanceLabel = '';
+    
+    if (isSupplier) {
+      balanceClass = isDue ? 'warning-bg' : 'success-bg';
+      balanceLabel = isDue ? 'Balance Owed' : 'Advance Paid';
+      card.className = `shop-card is-supplier`;
+    } else {
+      balanceClass = isDue ? 'danger-bg' : 'success-bg';
+      balanceLabel = isDue ? 'Balance Due' : 'Advance Credit';
+      card.className = `shop-card ${isDue ? 'has-balance' : ''}`;
+    }
+    
+    card.innerHTML = `
+      <div class="shop-card-header">
+        <div>
+          <div class="shop-card-name">
+            ${shop.name}
+            ${isSupplier ? '<span class="badge badge-warning" style="font-size: 9px; padding: 2px 6px; margin-left: 6px; vertical-align: middle;">Supplier</span>' : ''}
+          </div>
+          <div class="shop-card-owner">Owner: ${shop.owner}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm edit-shop-btn" data-id="${shop.id}" style="padding:4px 8px; font-size:10px;">Edit</button>
+      </div>
+      
+      <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction:column; gap:4px; margin-top:8px;">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <svg style="width:13px; height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 9.24v3z"></path></svg>
+          ${shop.phone || 'N/A'}
+        </span>
+        <span style="display:flex; align-items:center; gap:6px;">
+          <svg style="width:13px; height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          ${shop.address || 'APMC Market'}
+        </span>
+      </div>
+
+      <div class="shop-card-balance ${balanceClass}">
+        <span>${balanceLabel}</span>
+        <span class="balance-value">${formatCurrency(Math.abs(shop.balance))}</span>
+      </div>
+
+      <div class="shop-card-footer">
+        <button class="btn btn-primary btn-sm view-ledger-btn" style="flex-grow:1; justify-content:center;" data-id="${shop.id}">
+          <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Statement Ledger
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Assign Event Handlers
+  container.querySelectorAll('.view-ledger-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openShopLedgerModal(btn.getAttribute('data-id'));
+    });
+  });
+
+  container.querySelectorAll('.edit-shop-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditShopModal(btn.getAttribute('data-id'));
+    });
+  });
+}
+
+
+// Toggle Payment tab helper
+function togglePaymentTypeTab(type) {
+  document.getElementById('payment-type').value = type;
+  const btnRec = document.getElementById('tab-payment-received');
+  const btnPaid = document.getElementById('tab-payment-paid');
+  const shopLabel = document.getElementById('payment-shop-label');
+  const dateLabel = document.getElementById('payment-date-label');
+  const amountLabel = document.getElementById('payment-amount-label');
+  
+  if (type === 'Paid') {
+    btnRec.classList.remove('active');
+    btnPaid.classList.add('active');
+    if (shopLabel) shopLabel.textContent = 'Select Supplier Shop';
+    if (dateLabel) dateLabel.textContent = 'Date Paid';
+    if (amountLabel) amountLabel.textContent = 'Amount Paid (₹)';
+    populateShopDropdowns('payment-shop-select', 'Supplier');
+  } else {
+    btnRec.classList.add('active');
+    btnPaid.classList.remove('active');
+    if (shopLabel) shopLabel.textContent = 'Select Customer Shop';
+    if (dateLabel) dateLabel.textContent = 'Date Received';
+    if (amountLabel) amountLabel.textContent = 'Amount Received (₹)';
+    populateShopDropdowns('payment-shop-select', 'Customer');
+  }
+  document.getElementById('payment-due-warning').style.display = 'none';
+  document.getElementById('payment-entry-form').reset();
+  document.getElementById('payment-type').value = type;
+  const localToday = new Date().toISOString().split('T')[0];
+  document.getElementById('payment-date').value = localToday;
+}
+
+// --- FORM HANDLERS (SHOPS, SUPPLIES, PAYMENTS) ---
+function setupFormHandlers() {
+  // 1. Add Shop Form Trigger
+  document.getElementById('btn-add-shop').addEventListener('click', openAddShopModal);
+  document.getElementById('btn-close-shop-modal').addEventListener('click', closeShopModal);
+  document.getElementById('btn-cancel-shop-modal').addEventListener('click', closeShopModal);
+  
+  // Submit new/edit shop details
+  document.getElementById('shop-details-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('edit-shop-id').value;
+    const name = document.getElementById('shop-name').value.trim();
+    const owner = document.getElementById('shop-owner').value.trim();
+    const type = document.getElementById('shop-type').value;
+    const phone = document.getElementById('shop-phone').value.trim();
+    const address = document.getElementById('shop-address').value.trim();
+
+    if (!name || !owner) {
+      showToast("Shop name and Owner name are required", "warning");
+      return;
+    }
+
+    if (editId) {
+      // Edit shop Mode
+      State.shops[editId].name = name;
+      State.shops[editId].owner = owner;
+      State.shops[editId].type = type;
+      State.shops[editId].phone = phone;
+      State.shops[editId].address = address;
+      showToast("Shop details updated", "success");
+    } else {
+      // Create new shop Mode
+      const newId = `shop-${Date.now()}`;
+      State.shops[newId] = {
+        id: newId,
+        name,
+        owner,
+        type,
+        phone,
+        address,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      showToast("New shop registered", "success");
+    }
+    
+    saveData();
+    closeShopModal();
+    renderShops();
+  });
+
+  // Search & Filter change events
+  document.getElementById('shop-search').addEventListener('input', renderShops);
+  document.getElementById('shop-filter-sort').addEventListener('change', renderShops);
+
+  // 2. Supply Entry Form Submit
+  document.getElementById('supply-entry-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const shopId = document.getElementById('supply-shop-select').value;
+    const date = document.getElementById('supply-date').value;
+    const rate = parseFloat(document.getElementById('supply-rate').value);
+    const weightsString = document.getElementById('supply-weights').value;
+    const notes = document.getElementById('supply-notes').value.trim();
+
+    if (!shopId) {
+      showToast("Please choose a valid shop account", "warning");
+      return;
+    }
+
+    // Parse weights
+    const parsed = parseWeightsString(weightsString);
+    if (parsed.bagWeights.length === 0) {
+      showToast("Please enter at least one bag weight", "warning");
+      return;
+    }
+
+    const txId = `tx-${Date.now()}`;
+    const newTx = {
+      id: txId,
+      shopId,
+      date,
+      ratePerKg: rate,
+      bagWeights: parsed.bagWeights,
+      totalBags: parsed.totalBags,
+      totalWeight: parsed.totalWeight,
+      totalAmount: parsed.totalWeight * rate,
+      notes
+    };
+
+    State.transactions.push(newTx);
+    saveData();
+    showToast(`Recorded: ${parsed.totalBags} bags supplied successfully`, "success");
+    navigate('dashboard-view');
+  });
+
+  document.getElementById('btn-reset-supply').addEventListener('click', resetSupplyForm);
+
+  // 3. Payment Entry Form Tabs and Form Submit
+  const tabRec = document.getElementById('tab-payment-received');
+  const tabPaid = document.getElementById('tab-payment-paid');
+  if (tabRec && tabPaid) {
+    tabRec.addEventListener('click', () => togglePaymentTypeTab('Received'));
+    tabPaid.addEventListener('click', () => togglePaymentTypeTab('Paid'));
+  }
+
+  document.getElementById('payment-entry-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const shopId = document.getElementById('payment-shop-select').value;
+    const date = document.getElementById('payment-date').value;
+    const amount = parseFloat(document.getElementById('payment-amount').value);
+    const mode = document.getElementById('payment-mode').value;
+    const reference = document.getElementById('payment-reference').value.trim();
+    const notes = document.getElementById('payment-notes').value.trim();
+    const type = document.getElementById('payment-type').value || 'Received';
+
+    if (!shopId) {
+      showToast("Please select a shop account", "warning");
+      return;
+    }
+
+    if (amount <= 0) {
+      showToast("Payment amount must be greater than zero", "warning");
+      return;
+    }
+
+    const payId = `pay-${Date.now()}`;
+    const newPay = {
+      id: payId,
+      shopId,
+      date,
+      amount,
+      mode,
+      reference,
+      notes,
+      type
+    };
+
+    State.payments.push(newPay);
+    saveData();
+    const actionWord = type === 'Paid' ? 'paid to' : 'received from';
+    showToast(`Payment of ₹${amount} recorded as ${actionWord} shop`, "success");
+    navigate('dashboard-view');
+  });
+
+  // Dynamic alert for pending outstanding on Payment Page
+  document.getElementById('payment-shop-select').addEventListener('change', (e) => {
+    const shopId = e.target.value;
+    const warningLabel = document.getElementById('payment-due-warning');
+    if (!shopId) {
+      warningLabel.style.display = 'none';
+      return;
+    }
+    const shop = State.shops[shopId];
+    const isSupplier = shop && shop.type === 'Supplier';
+    const balData = calculateShopBalance(shopId);
+    if (balData.balance > 0) {
+      warningLabel.textContent = isSupplier 
+        ? `Outstanding balance owed: ₹${balData.balance.toFixed(2)}`
+        : `Outstanding balance due: ₹${balData.balance.toFixed(2)}`;
+      warningLabel.className = 'text-danger';
+      warningLabel.style.display = 'block';
+    } else if (balData.balance < 0) {
+      warningLabel.textContent = isSupplier
+        ? `Advance Paid: ₹${Math.abs(balData.balance).toFixed(2)}`
+        : `Advance Credit: ₹${Math.abs(balData.balance).toFixed(2)}`;
+      warningLabel.className = 'text-success';
+      warningLabel.style.display = 'block';
+    } else {
+      warningLabel.textContent = `All settled! Balance is ₹0.00`;
+      warningLabel.className = 'text-success';
+      warningLabel.style.display = 'block';
+    }
+  });
+
+  document.getElementById('btn-reset-payment').addEventListener('click', resetPaymentForm);
+
+  // 3.5 Trip Entry Form Submit
+  const tripForm = document.getElementById('trip-entry-form');
+  if (tripForm) {
+    tripForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('trip-date').value;
+      const fuelCost = parseFloat(document.getElementById('trip-fuel-cost').value) || 0;
+      const totalBags = parseInt(document.getElementById('trip-bags').value) || 0;
+      const notes = document.getElementById('trip-notes').value.trim();
+
+      const tripId = `trip-${Date.now()}`;
+      const newTrip = {
+        id: tripId,
+        date,
+        fuelCost,
+        totalBags,
+        notes
+      };
+
+      State.trips.push(newTrip);
+      saveData();
+      showToast(`Recorded delivery trip with ${totalBags} bags`, "success");
+      navigate('dashboard-view');
+    });
+  }
+
+  // 3.7 Wholesale Sourcing Form Submit & Previews (Rapid Textarea Mode)
+  const sourcingForm = document.getElementById('sourcing-entry-form');
+  if (sourcingForm) {
+
+    function parseSourcingWeights() {
+      const raw = (document.getElementById('sourcing-weights') || {}).value || '';
+      return raw.split(/[\s,\n]+/).map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+    }
+
+    function updateSourcingStats() {
+      const weights = parseSourcingWeights();
+      const rate = parseFloat(document.getElementById('sourcing-rate').value) || 0;
+      const unit = document.getElementById('sourcing-rate-unit').value;
+      const count = weights.length;
+      const totalWeight = weights.reduce((s, w) => s + w, 0);
+      const avgWeight = count > 0 ? totalWeight / count : 0;
+      const totalCost = unit === 'per Kg' ? totalWeight * rate : count * rate;
+
+      const el = id => document.getElementById(id);
+      if (el('sourcing-stat-bag-count')) el('sourcing-stat-bag-count').textContent = count;
+      if (el('sourcing-stat-total-weight')) el('sourcing-stat-total-weight').textContent = totalWeight.toFixed(2) + ' Kg';
+      if (el('sourcing-stat-avg-weight')) el('sourcing-stat-avg-weight').textContent = avgWeight.toFixed(2) + ' Kg';
+      if (el('sourcing-stat-total-amount')) el('sourcing-stat-total-amount').textContent = formatCurrency(totalCost);
+
+      const preview = el('sourcing-parsed-bags-preview');
+      if (preview) {
+        if (count === 0) {
+          preview.innerHTML = '<span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>';
+        } else {
+          preview.innerHTML = weights.map((w, i) =>
+            `<span class="bag-chip">Bag ${i + 1}: ${w} Kg</span>`
+          ).join('');
+        }
+      }
+    }
+
+    sourcingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const supplierVal = document.getElementById('sourcing-supplier-select').value;
+      const date = document.getElementById('sourcing-date').value;
+      const rate = parseFloat(document.getElementById('sourcing-rate').value) || 0;
+      const rateUnit = document.getElementById('sourcing-rate-unit').value;
+      const notes = document.getElementById('sourcing-notes').value.trim();
+      const weights = parseSourcingWeights();
+
+      if (!supplierVal) {
+        showToast("Please choose a valid supplier shop", "warning");
+        return;
+      }
+      if (weights.length === 0) {
+        showToast("Please enter at least one bag weight", "warning");
+        return;
+      }
+      if (rate <= 0) {
+        showToast("Please enter a valid purchase rate", "warning");
+        return;
+      }
+
+      const totalBags = weights.length;
+      const totalWeight = weights.reduce((s, w) => s + w, 0);
+      const totalAmount = rateUnit === 'per Kg' ? totalWeight * rate : totalBags * rate;
+      const supplierId = supplierVal;
+
+      const newPur = {
+        id: `pur-${Date.now()}`,
+        supplierId,
+        supplierName: supplierVal === 'CHERIYAVA_NAS' ? 'CHERIYAVA NAS' :
+                      supplierVal === 'NOUSHAD_NAS' ? 'NOUSHAD NAS' :
+                      (State.shops[supplierVal] ? State.shops[supplierVal].name : supplierVal),
+        date,
+        rate,
+        rateUnit,
+        totalBags,
+        totalWeight: parseFloat(totalWeight.toFixed(2)),
+        bagWeights: weights,
+        totalAmount,
+        notes
+      };
+
+      State.purchases.push(newPur);
+      saveData();
+      showToast(`Recorded wholesale purchase of ${totalBags} bags (${totalWeight.toFixed(1)} Kg)`, "success");
+      navigate('dashboard-view');
+    });
+
+    const weightsTA = document.getElementById('sourcing-weights');
+    if (weightsTA) weightsTA.addEventListener('input', updateSourcingStats);
+    const rateInput = document.getElementById('sourcing-rate');
+    if (rateInput) rateInput.addEventListener('input', updateSourcingStats);
+    const rateUnitSel = document.getElementById('sourcing-rate-unit');
+    if (rateUnitSel) rateUnitSel.addEventListener('change', updateSourcingStats);
+
+    const btnResetSourcing = document.getElementById('btn-reset-sourcing');
+    if (btnResetSourcing) {
+      btnResetSourcing.addEventListener('click', resetSourcingForm);
+    }
+  }
+
+  // 3.8 Wholesale Payment Form (Pay to Wholesaler)
+  const wpayForm = document.getElementById('wholesale-payment-form');
+  if (wpayForm) {
+    const SUPPLIER_NAMES = { CHERIYAVA_NAS: 'CHERIYAVA NAS', NOUSHAD_NAS: 'NOUSHAD NAS' };
+
+    wpayForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const supplierId = document.getElementById('wpay-supplier-select').value;
+      const date = document.getElementById('wpay-date').value;
+      const amount = parseFloat(document.getElementById('wpay-amount').value) || 0;
+      const mode = document.getElementById('wpay-mode').value;
+      const notes = document.getElementById('wpay-notes').value.trim();
+
+      if (!supplierId) { showToast('Please choose a supplier', 'warning'); return; }
+      if (amount <= 0) { showToast('Please enter a valid amount', 'warning'); return; }
+
+      const supplierName = SUPPLIER_NAMES[supplierId] ||
+        (State.shops[supplierId] ? State.shops[supplierId].name : supplierId);
+
+      State.wholesalePayments.push({
+        id: `wpay-${Date.now()}`,
+        supplierId, supplierName, date, amount, mode, notes
+      });
+      saveData();
+      showToast(`Payment of ${formatCurrency(amount)} to ${supplierName} recorded`, 'success');
+      wpayForm.reset();
+      document.getElementById('wpay-date').value = new Date().toISOString().split('T')[0];
+      renderWholesalePaymentsTable();
+      renderDashboard();
+    });
+
+    const btnResetWpay = document.getElementById('btn-reset-wpay');
+    if (btnResetWpay) {
+      btnResetWpay.addEventListener('click', () => {
+        wpayForm.reset();
+        document.getElementById('wpay-date').value = new Date().toISOString().split('T')[0];
+      });
+    }
+  }
+
+  const btnResetTrip = document.getElementById('btn-reset-trip');
+  if (btnResetTrip) {
+    btnResetTrip.addEventListener('click', resetTripForm);
+  }
+}
+
+// Open / Close Shop Dialog Form Modals
+function openAddShopModal() {
+  document.getElementById('shop-modal-title').textContent = "Add New Shop Account";
+  document.getElementById('edit-shop-id').value = "";
+  document.getElementById('shop-details-form').reset();
+  document.getElementById('shop-type').value = "Customer";
+  document.getElementById('shop-form-modal').classList.add('active');
+}
+
+function openEditShopModal(shopId) {
+  const shop = State.shops[shopId];
+  if (!shop) return;
+  document.getElementById('shop-modal-title').textContent = "Edit Shop Details";
+  document.getElementById('edit-shop-id').value = shop.id;
+  document.getElementById('shop-name').value = shop.name;
+  document.getElementById('shop-owner').value = shop.owner;
+  document.getElementById('shop-type').value = shop.type || "Customer";
+  document.getElementById('shop-phone').value = shop.phone || '';
+  document.getElementById('shop-address').value = shop.address || '';
+  
+  document.getElementById('shop-form-modal').classList.add('active');
+}
+
+function closeShopModal() {
+  document.getElementById('shop-form-modal').classList.remove('active');
+}
+
+// Reset form elements
+function resetSupplyForm() {
+  document.getElementById('supply-entry-form').reset();
+  
+  // Set default date to today
+  const localToday = new Date().toISOString().split('T')[0];
+  document.getElementById('supply-date').value = localToday;
+
+  // Clear parser previews
+  document.getElementById('parsed-bags-preview').innerHTML = `<span style="color: var(--text-muted); font-size:12px; font-style:italic;">Weights preview will appear here...</span>`;
+  document.getElementById('stat-bag-count').textContent = '0';
+  document.getElementById('stat-total-weight').textContent = '0.00 Kg';
+  document.getElementById('stat-avg-weight').textContent = '0.00 Kg';
+  document.getElementById('stat-total-amount').textContent = '₹0.00';
+}
+
+function resetPaymentForm() {
+  document.getElementById('payment-entry-form').reset();
+  const localToday = new Date().toISOString().split('T')[0];
+  document.getElementById('payment-date').value = localToday;
+  document.getElementById('payment-due-warning').style.display = 'none';
+}
+
+
+// --- RAPID BAG WEIGHT ENTRY PARSER ENGINE ---
+function setupBagParser() {
+  const textarea = document.getElementById('supply-weights');
+  const rateInput = document.getElementById('supply-rate');
+  
+  const parseTrigger = () => {
+    const rawText = textarea.value;
+    const rate = parseFloat(rateInput.value) || 0;
+    const result = parseWeightsString(rawText);
+
+    updateParserUI(result, rate);
+  };
+
+  textarea.addEventListener('input', parseTrigger);
+  rateInput.addEventListener('input', parseTrigger);
+}
+
+// Clean and parse weight numbers from messy user strings (spaces, commas, tabs, lines)
+function parseWeightsString(text) {
+  if (!text) {
+    return { bagWeights: [], totalBags: 0, totalWeight: 0, avgWeight: 0 };
+  }
+
+  // Regex matches positive decimal/integer numbers (e.g. 45, 48.5)
+  // Split on symbols/whitespace, filter valid positive float numbers
+  const tokens = text.match(/[+-]?(?:\d+(?:\.\d*)?|\.\d+)/g) || [];
+  const bagWeights = [];
+  let totalWeight = 0;
+
+  tokens.forEach(t => {
+    const num = parseFloat(t);
+    if (!isNaN(num) && num > 0) {
+      bagWeights.push(num);
+      totalWeight += num;
+    }
+  });
+
+  const totalBags = bagWeights.length;
+  const avgWeight = totalBags > 0 ? (totalWeight / totalBags) : 0;
+
+  return {
+    bagWeights,
+    totalBags,
+    totalWeight,
+    avgWeight
+  };
+}
+
+function updateParserUI(parsed, rate) {
+  const previewDiv = document.getElementById('parsed-bags-preview');
+  const countSpan = document.getElementById('stat-bag-count');
+  const totalWeightSpan = document.getElementById('stat-total-weight');
+  const avgWeightSpan = document.getElementById('stat-avg-weight');
+  const totalAmountSpan = document.getElementById('stat-total-amount');
+
+  // Preview Grid Generation
+  if (parsed.bagWeights.length === 0) {
+    previewDiv.innerHTML = `<span style="color: var(--text-muted); font-size:12px; font-style:italic;">Weights preview will appear here...</span>`;
+  } else {
+    previewDiv.innerHTML = '';
+    parsed.bagWeights.forEach((wt, index) => {
+      const badge = document.createElement('span');
+      badge.className = 'bag-badge';
+      badge.innerHTML = `<span class="bag-badge-index">#${index+1}</span> ${wt} Kg`;
+      previewDiv.appendChild(badge);
+    });
+  }
+
+  // Summary Metrics updating
+  countSpan.textContent = parsed.totalBags;
+  totalWeightSpan.textContent = `${parsed.totalWeight.toFixed(1)} Kg`;
+  avgWeightSpan.textContent = `${parsed.avgWeight.toFixed(1)} Kg`;
+  
+  const totalAmount = parsed.totalWeight * rate;
+  totalAmountSpan.textContent = formatCurrency(totalAmount);
+}
+
+
+// --- DETAILED SHOP STATEMENT MODAL ---
+function openShopLedgerModal(shopId) {
+  const shop = State.shops[shopId];
+  if (!shop) return;
+  State.activeLedgerShopId = shopId;
+
+  // Build Shop Details Header
+  const headerDiv = document.getElementById('modal-ledger-header');
+  const balData = calculateShopBalance(shopId);
+  const isDue = balData.balance >= 0;
+  
+  const isSupplier = shop.type === 'Supplier';
+  const label = isSupplier 
+    ? (balData.balance >= 0 ? 'Total Outstanding Owed' : 'Total Advance Paid')
+    : (balData.balance >= 0 ? 'Total Outstanding Due' : 'Total Advance Credit');
+  const subtext = isSupplier
+    ? `Total Purchases: ${formatCurrency(balData.debits)} | Total Paid: ${formatCurrency(balData.credits)}`
+    : `Total Sales: ${formatCurrency(balData.debits)} | Total Received: ${formatCurrency(balData.credits)}`;
+
+  headerDiv.innerHTML = `
+    <div class="ledger-header-info">
+      <h3>${shop.name}</h3>
+      <p><b>Owner:</b> ${shop.owner}</p>
+      <p><b>Phone:</b> ${shop.phone || 'N/A'} | <b>Mandi Address:</b> ${shop.address || 'N/A'}</p>
+      <p>Account Registered: ${shop.createdAt || 'N/A'}</p>
+    </div>
+    <div class="ledger-header-totals">
+      <div style="font-size: 11px; text-transform: uppercase; font-weight:600; opacity:0.8;">${label}</div>
+      <div class="ledger-total-due" style="color: ${isSupplier ? 'var(--warning)' : (isDue ? '#ff6b6b' : '#2ec4b6')}">
+        ${formatCurrency(Math.abs(balData.balance))}
+      </div>
+      <div style="font-size: 11px; margin-top:5px; opacity:0.9;">
+        ${subtext}
+      </div>
+    </div>
+  `;
+
+  // Dynamically set tab buttons text content
+  const suppliesTabBtn = document.querySelector('.detail-tabs button[data-pane="tab-pane-supplies"]');
+  const paymentsTabBtn = document.querySelector('.detail-tabs button[data-pane="tab-pane-payments"]');
+  
+  if (isSupplier) {
+    if (suppliesTabBtn) suppliesTabBtn.textContent = 'Purchases History';
+    if (paymentsTabBtn) paymentsTabBtn.textContent = 'Payments Paid';
+  } else {
+    if (suppliesTabBtn) suppliesTabBtn.textContent = 'Supplies History';
+    if (paymentsTabBtn) paymentsTabBtn.textContent = 'Payments Received';
+  }
+
+  // Populate dynamic table headers
+  const suppliesHeaders = document.getElementById('ledger-supplies-headers');
+  const paymentsHeaders = document.getElementById('ledger-payments-headers');
+  const statementHeaders = document.getElementById('ledger-statement-headers');
+
+  if (isSupplier) {
+    if (suppliesHeaders) {
+      suppliesHeaders.innerHTML = `
+        <th>Date</th>
+        <th class="text-right">Bags Sourced</th>
+        <th class="text-right">Rate</th>
+        <th>Unit</th>
+        <th class="text-right">Weight (Kg)</th>
+        <th class="text-right">Total Cost</th>
+        <th>Notes</th>
+        <th>Action</th>
+      `;
+    }
+    if (paymentsHeaders) {
+      paymentsHeaders.innerHTML = `
+        <th>Date</th>
+        <th>Mode</th>
+        <th>Reference / Notes</th>
+        <th class="text-right">Amount Paid</th>
+        <th>Action</th>
+      `;
+    }
+    if (statementHeaders) {
+      statementHeaders.innerHTML = `
+        <th>Date</th>
+        <th>Transaction Details</th>
+        <th class="text-right">Purchase (Debit)</th>
+        <th class="text-right">Payment (Credit)</th>
+        <th class="text-right">Balance Owed</th>
+      `;
+    }
+  } else {
+    if (suppliesHeaders) {
+      suppliesHeaders.innerHTML = `
+        <th>Date</th>
+        <th class="text-right">Trips</th>
+        <th class="text-right">Bags</th>
+        <th>Bag Weights</th>
+        <th class="text-right">Total Weight</th>
+        <th class="text-right">Rate / Kg</th>
+        <th class="text-right">Total Amount</th>
+        <th class="text-right">Fuel Cost</th>
+        <th>Notes</th>
+        <th>Action</th>
+      `;
+    }
+    if (paymentsHeaders) {
+      paymentsHeaders.innerHTML = `
+        <th>Date</th>
+        <th>Mode</th>
+        <th>Reference / Notes</th>
+        <th class="text-right">Amount Received</th>
+        <th>Action</th>
+      `;
+    }
+    if (statementHeaders) {
+      statementHeaders.innerHTML = `
+        <th>Date</th>
+        <th>Transaction Details</th>
+        <th class="text-right">Debit (Charges)</th>
+        <th class="text-right">Credit (Payments)</th>
+        <th class="text-right">Balance Due</th>
+      `;
+    }
+  }
+
+  // Render Tabs list
+  renderLedgerSuppliesTable(shopId);
+  renderLedgerPaymentsTable(shopId);
+  renderLedgerStatementRunningTable(shopId);
+
+  // Setup tab toggling inside the ledger
+  const tabs = document.querySelectorAll('.detail-tabs .detail-tab');
+  const panes = document.querySelectorAll('.tab-pane');
+  
+  tabs.forEach(tab => {
+    // Reset active state
+    tab.classList.remove('active');
+    if (tab.getAttribute('data-pane') === 'tab-pane-supplies') {
+      tab.classList.add('active');
+    }
+
+    tab.onclick = () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panes.forEach(p => p.classList.remove('active'));
+      
+      tab.classList.add('active');
+      const paneId = tab.getAttribute('data-pane');
+      document.getElementById(paneId).classList.add('active');
+    };
+  });
+
+  // Reset panes active states
+  panes.forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-pane-supplies').classList.add('active');
+
+  // Trigger Print Logic
+  document.getElementById('btn-print-statement').onclick = () => {
+    window.print();
+  };
+
+  // Assign close events
+  document.getElementById('btn-close-ledger-modal').onclick = closeShopLedgerModal;
+  document.getElementById('btn-close-ledger-footer').onclick = closeShopLedgerModal;
+
+  // Open modal
+  document.getElementById('shop-ledger-modal').classList.add('active');
+}
+
+function closeShopLedgerModal() {
+  document.getElementById('shop-ledger-modal').classList.remove('active');
+  State.activeLedgerShopId = null;
+}
+
+// Ledger Modal Tab 1: supplies view
+function renderLedgerSuppliesTable(shopId) {
+  const shop = State.shops[shopId];
+  if (!shop) return;
+  const isSupplier = shop.type === 'Supplier';
+  const tbody = document.getElementById('modal-ledger-supplies-rows');
+  tbody.innerHTML = '';
+
+  if (isSupplier) {
+    const supplierPurchases = State.purchases
+      .filter(p => p.supplierId === shopId)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (supplierPurchases.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-secondary); font-style:italic;">No purchase records registered.</td></tr>`;
+      return;
+    }
+
+    supplierPurchases.forEach(pur => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${pur.date}</td>
+        <td class="text-right" style="font-weight:600;">${pur.totalBags} bags</td>
+        <td class="text-right">₹${(pur.rate || 0).toFixed(2)}</td>
+        <td>${pur.rateUnit || 'per Kg'}</td>
+        <td class="text-right">${pur.totalWeight ? pur.totalWeight.toFixed(1) + ' Kg' : '-'}</td>
+        <td class="text-right" style="font-weight:700; color:var(--primary)">${formatCurrency(pur.totalAmount || 0)}</td>
+        <td>${pur.notes || '-'}</td>
+        <td>
+          <button class="btn btn-danger btn-sm delete-purchase-btn" style="padding: 4px 8px; font-size:10px;" data-id="${pur.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.delete-purchase-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entryId = btn.getAttribute('data-id');
+        if (confirm("Are you sure you want to delete this purchase record? This will adjust the balance.")) {
+          State.purchases = State.purchases.filter(p => p.id !== entryId);
+          saveData();
+          showToast("Wholesale purchase deleted", "warning");
+          openShopLedgerModal(shopId);
+          renderShops();
+        }
+      });
+    });
+  } else {
+    const shopTxs = State.transactions
+      .filter(tx => tx.shopId === shopId)
+      .sort((a, b) => new Date(a.date) - new Date(b.date)); // chronological
+
+    if (shopTxs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--text-secondary); font-style:italic;">No supply records registered.</td></tr>`;
+      return;
+    }
+
+    shopTxs.forEach(tx => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${tx.date}</td>
+        <td class="text-right" style="font-weight:600;">${tx.trips || 1}</td>
+        <td class="text-right" style="font-weight:600;">${tx.totalBags}</td>
+        <td style="max-width: 180px; font-size:11px; color: var(--text-secondary); word-break:break-all;">
+          ${tx.bagWeights.join(', ')}
+        </td>
+        <td class="text-right">${tx.totalWeight.toFixed(1)} Kg</td>
+        <td class="text-right">₹${tx.ratePerKg.toFixed(2)}</td>
+        <td class="text-right" style="font-weight:700; color:var(--primary)">${formatCurrency(tx.totalAmount)}</td>
+        <td class="text-right text-danger" style="font-weight:600;">${tx.fuelCost ? formatCurrency(tx.fuelCost) : '₹0.00'}</td>
+        <td>${tx.notes || '-'}</td>
+        <td>
+          <button class="btn btn-danger btn-sm delete-entry-btn" style="padding: 4px 8px; font-size:10px;" data-type="tx" data-id="${tx.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.delete-entry-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entryId = btn.getAttribute('data-id');
+        if (confirm("Are you sure you want to delete this supply entry? This will adjust the balance.")) {
+          State.transactions = State.transactions.filter(t => t.id !== entryId);
+          saveData();
+          showToast("Supply entry deleted", "warning");
+          openShopLedgerModal(shopId); // reload modal content
+          renderShops(); // reload background views
+        }
+      });
+    });
+  }
+}
+
+// Ledger Modal Tab 2: payments view
+function renderLedgerPaymentsTable(shopId) {
+  const shop = State.shops[shopId];
+  if (!shop) return;
+  const isSupplier = shop.type === 'Supplier';
+  const tbody = document.getElementById('modal-ledger-payments-rows');
+  tbody.innerHTML = '';
+
+  const shopPays = State.payments
+    .filter(p => p.shopId === shopId && (isSupplier ? p.type === 'Paid' : (p.type || 'Received') === 'Received'))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (shopPays.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-secondary); font-style:italic;">No payment records registered.</td></tr>`;
+    return;
+  }
+
+  shopPays.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.date}</td>
+      <td><span class="badge badge-success">${p.mode}</span></td>
+      <td>
+        <span style="font-weight:500;">Ref: ${p.reference || 'None'}</span>
+        ${p.notes ? `<div style="font-size:11px; color:var(--text-secondary);">${p.notes}</div>` : ''}
+      </td>
+      <td class="text-right text-success" style="font-weight:700;">${formatCurrency(p.amount)}</td>
+      <td>
+        <button class="btn btn-danger btn-sm delete-entry-btn" style="padding: 4px 8px; font-size:10px;" data-type="pay" data-id="${p.id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Bind Delete buttons
+  tbody.querySelectorAll('.delete-entry-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const entryId = btn.getAttribute('data-id');
+      if (confirm("Are you sure you want to delete this payment record? This will adjust the balance.")) {
+        State.payments = State.payments.filter(p => p.id !== entryId);
+        saveData();
+        showToast("Payment record deleted", "warning");
+        openShopLedgerModal(shopId); // reload modal
+        renderShops();
+      }
+    });
+  });
+}
+
+// Ledger Modal Tab 3: detailed running sheet
+function renderLedgerStatementRunningTable(shopId) {
+  const shop = State.shops[shopId];
+  if (!shop) return;
+  const isSupplier = shop.type === 'Supplier';
+  const tbody = document.getElementById('modal-ledger-statement-rows');
+  tbody.innerHTML = '';
+
+  let ledgerItems = [];
+
+  if (isSupplier) {
+    const purchases = State.purchases
+      .filter(p => p.supplierId === shopId)
+      .map(p => ({
+        date: p.date,
+        desc: `Bulk Onion Sourced (${p.totalBags} bags, ${p.totalWeight ? p.totalWeight.toFixed(1) + ' Kg' : ''} @ ₹${(p.rate || 0).toFixed(2)}/${p.rateUnit === 'per Kg' ? 'Kg' : 'Bag'})`,
+        debit: p.totalAmount || 0,
+        credit: 0
+      }));
+
+    const payments = State.payments
+      .filter(p => p.shopId === shopId && p.type === 'Paid')
+      .map(p => ({
+        date: p.date,
+        desc: `Payment Paid (${p.mode}${p.reference ? ' - Ref: ' + p.reference : ''})`,
+        debit: 0,
+        credit: p.amount
+      }));
+
+    ledgerItems = [...purchases, ...payments].sort((a, b) => new Date(a.date) - new Date(b.date));
+  } else {
+    // Customer
+    const supplies = State.transactions
+      .filter(tx => tx.shopId === shopId)
+      .map(tx => ({
+        date: tx.date,
+        desc: `Onion Supply (${tx.totalBags} bags, ${tx.totalWeight.toFixed(1)} Kg @ ₹${tx.ratePerKg.toFixed(2)}/Kg)`,
+        debit: tx.totalAmount,
+        credit: 0
+      }));
+
+    const payments = State.payments
+      .filter(p => p.shopId === shopId && (p.type || 'Received') === 'Received')
+      .map(p => ({
+        date: p.date,
+        desc: `Payment Recd (${p.mode}${p.reference ? ' - Ref: ' + p.reference : ''})`,
+        debit: 0,
+        credit: p.amount
+      }));
+
+    ledgerItems = [...supplies, ...payments].sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  if (ledgerItems.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-secondary); font-style:italic;">No transactions registered to generate ledger sheet.</td></tr>`;
+    return;
+  }
+
+  let runningBalance = 0;
+  ledgerItems.forEach(item => {
+    runningBalance += item.debit - item.credit;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.date}</td>
+      <td style="font-weight: 500;">${item.desc}</td>
+      <td class="text-right" style="color: ${item.debit > 0 ? 'var(--text-primary)' : 'var(--text-muted)'}">${item.debit > 0 ? formatCurrency(item.debit) : '-'}</td>
+      <td class="text-right" style="color: ${item.credit > 0 ? 'var(--success)' : 'var(--text-muted)'}; font-weight: ${item.credit > 0 ? '600' : 'normal'}">${item.credit > 0 ? formatCurrency(item.credit) : '-'}</td>
+      <td class="text-right" style="font-weight: 700; color: ${runningBalance > 0 ? 'var(--danger)' : 'var(--success)'}">${formatCurrency(runningBalance)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+// --- BACKUP, IMPORT, EXPORT EXCEL SYSTEM ---
+function setupBackupHandlers() {
+  // --- Helpers ---
+  function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function esc(s) { return `"${String(s||'').replace(/"/g,'""')}"`; }
+  const todayStr = () => new Date().toISOString().split('T')[0];
+  function markBackup() {
+    localStorage.setItem('onion_last_backup', new Date().toISOString());
+    updateLastBackupInfo();
+  }
+
+  // --- Backup reminder banner + last backup info ---
+  function updateLastBackupInfo() {
+    const lastBackup = localStorage.getItem('onion_last_backup');
+    const el = document.getElementById('last-backup-info');
+    const banner = document.getElementById('backup-reminder-banner');
+    if (el) {
+      if (lastBackup) {
+        const d = new Date(lastBackup);
+        const diffDays = Math.floor((Date.now() - d) / 86400000);
+        const color = diffDays >= 7 ? 'var(--danger)' : diffDays >= 3 ? 'var(--warning)' : 'var(--success)';
+        el.style.color = color;
+        el.textContent = `Last backup: ${d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}${diffDays > 0 ? ` (${diffDays} day${diffDays>1?'s':''} ago)` : ' (today)'}`;
+        if (banner) banner.style.display = diffDays >= 7 ? 'flex' : 'none';
+      } else {
+        el.style.color = 'var(--danger)';
+        el.textContent = '⚠️ No backup made yet!';
+        if (banner) banner.style.display = 'flex';
+      }
+    }
+  }
+  updateLastBackupInfo();
+
+  // --- 1. Share via WhatsApp / Native Share ---
+  const shareBtn = document.getElementById('btn-share-backup');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const dataStr = localStorage.getItem('onion_ledger_db') || '{}';
+      const filename = `nas_backup_${todayStr()}.json`;
+      const file = new File([dataStr], filename, { type: 'application/json' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: 'NAS Onion Ledger Backup',
+            text: `Business backup - ${todayStr()}`,
+            files: [file]
+          });
+          markBackup();
+          showToast('✅ Backup shared successfully!', 'success');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            showToast('Share cancelled or failed. Try Copy or Download instead.', 'warning');
+          }
+        }
+      } else {
+        // Fallback: open WhatsApp with text (for older phones)
+        const text = encodeURIComponent(`NAS Onion Ledger Backup (${todayStr()}):\n\n${dataStr}`);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+        markBackup();
+        showToast('Opening WhatsApp...', 'info');
+      }
+    });
+  }
+
+  // --- 2. Copy backup to clipboard ---
+  const copyBtn = document.getElementById('btn-copy-backup');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const dataStr = localStorage.getItem('onion_ledger_db') || '{}';
+      try {
+        await navigator.clipboard.writeText(dataStr);
+        markBackup();
+        showToast('✅ Backup copied! Paste it in WhatsApp Saved Messages or Notes app.', 'success');
+      } catch (err) {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = dataStr; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        markBackup();
+        showToast('✅ Backup copied to clipboard!', 'success');
+      }
+    });
+  }
+
+  // --- 3. Download JSON backup file ---
+  document.getElementById('btn-download-backup').addEventListener('click', () => {
+    const dataStr = localStorage.getItem('onion_ledger_db') || '{}';
+    downloadFile(dataStr, `nas_backup_${todayStr()}.json`, 'application/json');
+    markBackup();
+    showToast('✅ Backup file downloaded!', 'success');
+  });
+
+  // --- 4. Restore from backup file ---
+  const fileInput = document.getElementById('backup-file-input');
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        if (parsed && typeof parsed === 'object' && parsed.shops && Array.isArray(parsed.transactions)) {
+          State.shops = parsed.shops;
+          Object.keys(State.shops).forEach(id => { if (!State.shops[id].type) State.shops[id].type = 'Customer'; });
+          State.transactions = parsed.transactions || [];
+          State.payments = parsed.payments || [];
+          State.payments.forEach(p => { if (!p.type) p.type = 'Received'; });
+          State.trips = parsed.trips || [];
+          State.purchases = parsed.purchases || [];
+          State.wholesalePayments = parsed.wholesalePayments || [];
+          saveData();
+          refreshAllViews();
+          showToast('✅ Data restored from backup!', 'success');
+        } else {
+          showToast('Invalid backup file.', 'danger');
+        }
+      } catch (err) {
+        showToast('Error reading file.', 'danger');
+      }
+      fileInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // --- 5. Export Accounts CSV ---
+  document.getElementById('btn-export-excel').addEventListener('click', () => {
+    let csv = '\uFEFF' + 'Shop Name,Owner,Type,Phone,Supplies/Purchases (Rs),Payments (Rs),Balance (Rs)\n';
+    Object.values(State.shops).forEach(s => {
+      const b = calculateShopBalance(s.id);
+      csv += `${esc(s.name)},${esc(s.owner)},${esc(s.type||'Customer')},${esc(s.phone)},${b.debits.toFixed(2)},${b.credits.toFixed(2)},${b.balance.toFixed(2)}\n`;
+    });
+    downloadFile(csv, `nas_accounts_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast('Accounts CSV exported', 'success');
+  });
+
+  // --- 6. Export Trips CSV ---
+  const tripsBtn = document.getElementById('btn-export-trips');
+  if (tripsBtn) tripsBtn.addEventListener('click', () => {
+    let csv = '\uFEFF' + 'Date,Bags,Fuel Cost (Rs),Notes\n';
+    [...State.trips].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t => {
+      csv += `${t.date},${t.totalBags},${t.fuelCost.toFixed(2)},${esc(t.notes)}\n`;
+    });
+    downloadFile(csv, `nas_trips_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast('Trips CSV exported', 'success');
+  });
+
+  // --- 7. Export Wholesale Purchases CSV ---
+  const srcBtn = document.getElementById('btn-export-sourcing');
+  if (srcBtn) srcBtn.addEventListener('click', () => {
+    let csv = '\uFEFF' + 'Date,Supplier,Bags,Weight (Kg),Rate,Unit,Total (Rs),Notes\n';
+    [...State.purchases].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(p => {
+      const sn = p.supplierName || (State.shops[p.supplierId]?State.shops[p.supplierId].name:p.supplierId||'Unknown');
+      csv += `${p.date},${esc(sn)},${p.totalBags},${p.totalWeight?p.totalWeight.toFixed(2):''},${p.rate.toFixed(2)},${esc(p.rateUnit)},${p.totalAmount.toFixed(2)},${esc(p.notes)}\n`;
+    });
+    downloadFile(csv, `nas_purchases_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast('Purchases CSV exported', 'success');
+  });
+
+  // --- 8. Export Wholesaler Payments CSV ---
+  const wpBtn = document.getElementById('btn-export-wpay');
+  if (wpBtn) wpBtn.addEventListener('click', () => {
+    let csv = '\uFEFF' + 'Date,Supplier,Amount Paid (Rs),Mode,Notes\n';
+    [...State.wholesalePayments].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(p => {
+      csv += `${p.date},${esc(p.supplierName)},${p.amount.toFixed(2)},${esc(p.mode)},${esc(p.notes)}\n`;
+    });
+    downloadFile(csv, `nas_wholesaler_payments_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast('Wholesaler Payments CSV exported', 'success');
+  });
+
+  // --- 9. Export Complete Business Report ---
+  const allBtn = document.getElementById('btn-export-all');
+  if (allBtn) allBtn.addEventListener('click', () => {
+    let csv = '\uFEFF';
+    csv += '=== ACCOUNTS SUMMARY ===\nShop,Owner,Type,Supplies (Rs),Payments (Rs),Balance (Rs)\n';
+    Object.values(State.shops).forEach(s => {
+      const b = calculateShopBalance(s.id);
+      csv += `${esc(s.name)},${esc(s.owner)},${esc(s.type||'Customer')},${b.debits.toFixed(2)},${b.credits.toFixed(2)},${b.balance.toFixed(2)}\n`;
+    });
+    const totPur = State.purchases.reduce((s,p)=>s+(p.totalAmount||0),0);
+    const totWp = State.wholesalePayments.reduce((s,p)=>s+(p.amount||0),0);
+    csv += `\n=== WHOLESALE PURCHASES ===\nDate,Supplier,Bags,Weight,Rate,Unit,Total (Rs),Notes\n`;
+    [...State.purchases].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(p => {
+      const sn = p.supplierName||(State.shops[p.supplierId]?State.shops[p.supplierId].name:'Unknown');
+      csv += `${p.date},${esc(sn)},${p.totalBags},${p.totalWeight?p.totalWeight.toFixed(2):''},${p.rate.toFixed(2)},${esc(p.rateUnit)},${p.totalAmount.toFixed(2)},${esc(p.notes)}\n`;
+    });
+    csv += `TOTAL,,,,,,${totPur.toFixed(2)},\n`;
+    csv += `\n=== WHOLESALER PAYMENTS ===\nDate,Supplier,Amount (Rs),Mode,Notes\n`;
+    [...State.wholesalePayments].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(p => {
+      csv += `${p.date},${esc(p.supplierName)},${p.amount.toFixed(2)},${esc(p.mode)},${esc(p.notes)}\n`;
+    });
+    csv += `TOTAL,,${totWp.toFixed(2)},,\nBALANCE TO GIVE,,${Math.max(0,totPur-totWp).toFixed(2)},,\n`;
+    csv += `\n=== DELIVERY TRIPS ===\nDate,Bags,Fuel (Rs),Notes\n`;
+    [...State.trips].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t => {
+      csv += `${t.date},${t.totalBags},${t.fuelCost.toFixed(2)},${esc(t.notes)}\n`;
+    });
+    downloadFile(csv, `nas_full_report_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    markBackup();
+    showToast('✅ Complete report exported!', 'success');
+  });
+
+  // --- 10. Download Last 2 Weeks Report ---
+  const twoWeeksBtn = document.getElementById('btn-export-2weeks');
+  if (twoWeeksBtn) twoWeeksBtn.addEventListener('click', () => {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 14);
+    const after = (dateStr) => new Date(dateStr) >= cutoff;
+    let csv = '\uFEFF';
+    csv += `=== LAST 2 WEEKS REPORT (${cutoff.toISOString().split('T')[0]} to ${todayStr()}) ===\n\n`;
+
+    const recentTx = State.transactions.filter(t => after(t.date));
+    if (recentTx.length) {
+      csv += '--- SALES TO CUSTOMERS ---\nDate,Shop,Bags,Weight (Kg),Rate,Total (Rs),Notes\n';
+      recentTx.forEach(tx => {
+        const shop = State.shops[tx.shopId]; const sn = shop ? shop.name : tx.shopId;
+        csv += `${tx.date},${esc(sn)},${tx.totalBags},${tx.totalWeight.toFixed(2)},${tx.ratePerKg},${tx.totalAmount.toFixed(2)},${esc(tx.notes)}\n`;
+      });
+    }
+    const recentPay = State.payments.filter(p => after(p.date));
+    if (recentPay.length) {
+      csv += '\n--- PAYMENTS RECEIVED/PAID ---\nDate,Shop,Type,Amount (Rs),Mode,Reference,Notes\n';
+      recentPay.forEach(p => {
+        const shop = State.shops[p.shopId]; const sn = shop ? shop.name : p.shopId;
+        csv += `${p.date},${esc(sn)},${p.type||'Received'},${p.amount.toFixed(2)},${esc(p.mode)},${esc(p.reference)},${esc(p.notes)}\n`;
+      });
+    }
+    const recentPur = State.purchases.filter(p => after(p.date));
+    if (recentPur.length) {
+      csv += '\n--- WHOLESALE PURCHASES ---\nDate,Supplier,Bags,Weight,Rate,Total (Rs),Notes\n';
+      recentPur.forEach(p => {
+        const sn = p.supplierName||(State.shops[p.supplierId]?State.shops[p.supplierId].name:'Unknown');
+        csv += `${p.date},${esc(sn)},${p.totalBags},${p.totalWeight?p.totalWeight.toFixed(2):''},${p.rate.toFixed(2)},${p.totalAmount.toFixed(2)},${esc(p.notes)}\n`;
+      });
+    }
+    const recentWp = State.wholesalePayments.filter(p => after(p.date));
+    if (recentWp.length) {
+      csv += '\n--- WHOLESALER PAYMENTS ---\nDate,Supplier,Amount (Rs),Mode,Notes\n';
+      recentWp.forEach(p => { csv += `${p.date},${esc(p.supplierName)},${p.amount.toFixed(2)},${esc(p.mode)},${esc(p.notes)}\n`; });
+    }
+    const recentTrips = State.trips.filter(t => after(t.date));
+    if (recentTrips.length) {
+      csv += '\n--- DELIVERY TRIPS ---\nDate,Bags,Fuel (Rs),Notes\n';
+      recentTrips.forEach(t => { csv += `${t.date},${t.totalBags},${t.fuelCost.toFixed(2)},${esc(t.notes)}\n`; });
+    }
+    downloadFile(csv, `nas_2weeks_report_${todayStr()}.csv`, 'text/csv;charset=utf-8;');
+    showToast('✅ Last 2 weeks report downloaded!', 'success');
+  });
+
+  // --- 11. Load Demo & Erase ---
+  document.getElementById('btn-load-demo').addEventListener('click', () => {
+    if (confirm('Load demo data? Current data will be replaced.')) loadDemoData(true);
+  });
+  document.getElementById('btn-clear-all').addEventListener('click', () => {
+    if (confirm('ERASE ALL DATA? This CANNOT be undone! Take a backup first!')) eraseAllData();
+  });
+}
+
+// --- TRIPS LOG SECTION HELPERS ---
+function renderTripsView() {
+  resetTripForm();
+  renderTripsTable();
+}
+
+function resetTripForm() {
+  const form = document.getElementById('trip-entry-form');
+  if (form) form.reset();
+  const localToday = new Date().toISOString().split('T')[0];
+  const dateInput = document.getElementById('trip-date');
+  if (dateInput) dateInput.value = localToday;
+}
+
+function renderTripsTable() {
+  const tbody = document.getElementById('trips-history-rows');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const sortedTrips = [...State.trips].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (sortedTrips.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-secondary); font-style:italic;">No trips recorded yet.</td></tr>`;
+    return;
+  }
+
+  sortedTrips.forEach(trip => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${trip.date}</td>
+      <td class="text-right" style="font-weight:600;">${trip.totalBags} bags</td>
+      <td class="text-right text-danger" style="font-weight:600;">${formatCurrency(trip.fuelCost)}</td>
+      <td>
+        <div>${trip.notes || '-'}</div>
+      </td>
+      <td>
+        <button class="btn btn-danger btn-sm delete-trip-btn" style="padding: 4px 8px; font-size:10px;" data-id="${trip.id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.delete-trip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tripId = btn.getAttribute('data-id');
+      if (confirm("Are you sure you want to delete this trip record?")) {
+        State.trips = State.trips.filter(t => t.id !== tripId);
+        saveData();
+        showToast("Trip record deleted", "warning");
+        renderTripsView();
+      }
+    });
+  });
+}
+
+// --- WHOLESALE PURCHASES SECTION HELPERS ---
+function renderSourcingView() {
+  populateShopDropdowns('sourcing-supplier-select', 'Supplier');
+  resetSourcingForm();
+  renderSourcingTable();
+  renderWholesalePaymentsTable();
+  const wpayDate = document.getElementById('wpay-date');
+  if (wpayDate && !wpayDate.value) wpayDate.value = new Date().toISOString().split('T')[0];
+}
+
+function resetSourcingForm() {
+  const form = document.getElementById('sourcing-entry-form');
+  if (form) form.reset();
+  const localToday = new Date().toISOString().split('T')[0];
+  const dateInput = document.getElementById('sourcing-date');
+  if (dateInput) dateInput.value = localToday;
+
+  // Reset rapid textarea stat boxes
+  const el = id => document.getElementById(id);
+  if (el('sourcing-stat-bag-count')) el('sourcing-stat-bag-count').textContent = '0';
+  if (el('sourcing-stat-total-weight')) el('sourcing-stat-total-weight').textContent = '0.00 Kg';
+  if (el('sourcing-stat-avg-weight')) el('sourcing-stat-avg-weight').textContent = '0.00 Kg';
+  if (el('sourcing-stat-total-amount')) el('sourcing-stat-total-amount').textContent = '₹0.00';
+  const preview = el('sourcing-parsed-bags-preview');
+  if (preview) preview.innerHTML = '<span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>';
+}
+
+function renderSourcingTable() {
+  const tbody = document.getElementById('sourcing-history-rows');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  
+  const sortedPurchases = [...State.purchases].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  if (sortedPurchases.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-secondary); font-style:italic;">No wholesale purchases recorded yet.</td></tr>`;
+    return;
+  }
+  
+  sortedPurchases.forEach(pur => {
+    const supplierName = pur.supplierName ||
+      (State.shops[pur.supplierId] ? State.shops[pur.supplierId].name : pur.supplierId || 'Unknown Supplier');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${pur.date}</td>
+      <td style="font-weight:600;">${supplierName}</td>
+      <td class="text-right">${pur.totalBags}</td>
+      <td class="text-right">${pur.totalWeight ? pur.totalWeight.toFixed(1) : '-'}</td>
+      <td class="text-right">₹${pur.rate.toFixed(2)} / ${pur.rateUnit === 'per Kg' ? 'Kg' : 'Bag'}</td>
+      <td class="text-right text-success" style="font-weight:700;">${formatCurrency(pur.totalAmount)}</td>
+      <td>${pur.notes || '-'}</td>
+      <td>
+        <button class="btn btn-danger btn-sm delete-purchase-btn" style="padding: 4px 8px; font-size:10px;" data-id="${pur.id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  tbody.querySelectorAll('.delete-purchase-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const purId = btn.getAttribute('data-id');
+      if (confirm("Are you sure you want to delete this purchase record?")) {
+        State.purchases = State.purchases.filter(p => p.id !== purId);
+        saveData();
+        showToast("Purchase record deleted", "warning");
+        renderSourcingTable();
+        renderDashboard();
+      }
+    });
+  });
+}
+
+function renderWholesalePaymentsTable() {
+  const tbody = document.getElementById('wpay-history-rows');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const sorted = [...State.wholesalePayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (sorted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);font-style:italic;">No payments recorded yet.</td></tr>`;
+    return;
+  }
+  sorted.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.date}</td>
+      <td style="font-weight:600;">${p.supplierName}</td>
+      <td class="text-right text-success" style="font-weight:700;">${formatCurrency(p.amount)}</td>
+      <td>${p.mode || '-'}</td>
+      <td>${p.notes || '-'}</td>
+      <td><button class="btn btn-danger btn-sm delete-wpay-btn" style="padding:4px 8px;font-size:10px;" data-id="${p.id}">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.delete-wpay-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      if (confirm("Delete this payment record?")) {
+        State.wholesalePayments = State.wholesalePayments.filter(p => p.id !== id);
+        saveData();
+        showToast("Payment record deleted", "warning");
+        renderWholesalePaymentsTable();
+        renderDashboard();
+      }
+    });
+  });
+}
+
+</script>
+</body>
+</html>

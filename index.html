@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Onion Supply Ledger - Advanced digital ledger to record bag weights, rates, outstanding balances, and payments for onion merchants and suppliers.">
+  <title>NAS Onion Ledger | Business Dashboard</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div id="app-container">
+    <!-- Sidebar Navigation -->
+    <aside>
+      <div class="sidebar-header">
+        <div class="logo-icon">N</div>
+        <div class="logo-text">
+          NAS
+          <span class="logo-subtitle">Onion Supplier</span>
+        </div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-item active" data-target="dashboard-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="menu-item" data-target="shops-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Shops & Accounts
+          </a>
+        </li>
+        <li class="menu-item" data-target="supply-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H16c-.5 0-.9-.4-.9-.9V4.5c0-.5-.4-.9-.9-.9H9.8c-.5 0-.9.4-.9.9v6.6c0 .5-.4.9-.9.9H2.5c-.5 0-.9.4-.9.9v6.6c0 .5.4.9.9.9h19c.5 0 .9-.4.9-.9v-6.6c0-.5-.4-.9-.9-.9z"></path></svg>
+            New Supply Entry
+          </a>
+        </li>
+        <li class="menu-item" data-target="trips-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            Trips & Fuel Log
+          </a>
+        </li>
+        <li class="menu-item" data-target="sourcing-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            Wholesale Purchases
+          </a>
+        </li>
+        <li class="menu-item" data-target="payment-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            Record Payment
+          </a>
+        </li>
+        <li class="menu-item" data-target="backup-view">
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Backup & Data
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="theme-toggle-btn">
+          <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          Toggle Theme
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+      <!-- Common Header -->
+      <header>
+        <h1 class="page-title" id="current-view-title">Dashboard</h1>
+        <div class="header-actions">
+          <span class="user-badge" id="today-date-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            21 Jun, 2026
+          </span>
+        </div>
+      </header>
+
+      <!-- View 1: Dashboard -->
+      <section id="dashboard-view" class="view-section active">
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card" id="kpi-total-shops">
+            <div class="kpi-info">
+              <h3>Total Shops</h3>
+              <div class="kpi-value" id="kpi-shops-val">0</div>
+              <div class="kpi-subvalue">Active ledger accounts</div>
+            </div>
+            <div class="kpi-icon primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-total-bags">
+            <div class="kpi-info">
+              <h3>Bags Supplied</h3>
+              <div class="kpi-value" id="kpi-bags-val">0</div>
+              <div class="kpi-subvalue" id="kpi-bags-sub">0.00 Tons Total Weight</div>
+            </div>
+            <div class="kpi-icon warning">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H16c-.5 0-.9-.4-.9-.9V4.5c0-.5-.4-.9-.9-.9H9.8c-.5 0-.9.4-.9.9v6.6c0 .5-.4.9-.9.9H2.5c-.5 0-.9.4-.9.9v6.6c0 .5.4.9.9.9h19c.5 0 .9-.4.9-.9v-6.6c0-.5-.4-.9-.9-.9z"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-sales">
+            <div class="kpi-info">
+              <h3>Total Sales</h3>
+              <div class="kpi-value" id="kpi-sales-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-sales-sub">Calculated from supply rates</div>
+            </div>
+            <div class="kpi-icon success">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-due">
+            <div class="kpi-info">
+              <h3>Outstanding Due</h3>
+              <div class="kpi-value" id="kpi-due-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-due-sub">Total pending balance</div>
+            </div>
+            <div class="kpi-icon danger">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" id="kpi-total-give">
+            <div class="kpi-info">
+              <h3>Amount to Give</h3>
+              <div class="kpi-value" id="kpi-give-val">₹0</div>
+              <div class="kpi-subvalue" id="kpi-give-sub">Owed to wholesale suppliers</div>
+            </div>
+            <div class="kpi-icon warning" style="background-color: var(--warning-light); color: var(--warning);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logistics & Trips summary strip -->
+        <div class="kpi-grid" style="margin-top: -20px; margin-bottom: 40px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="kpi-card" style="border-left: 4px solid var(--accent);">
+            <div class="kpi-info">
+              <h3>Trips Log (Weekly)</h3>
+              <div class="kpi-value" id="logistics-trips-val">0</div>
+              <div class="kpi-subvalue" id="logistics-trips-sub">0 trips this week</div>
+            </div>
+            <div class="kpi-icon primary" style="background-color: rgba(46, 196, 182, 0.15); color: var(--accent);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+            <div class="kpi-info">
+              <h3>Fuel Cost (Weekly)</h3>
+              <div class="kpi-value" id="logistics-fuel-val">₹0.00</div>
+              <div class="kpi-subvalue" id="logistics-fuel-sub">₹0.00 total expense</div>
+            </div>
+            <div class="kpi-icon danger" style="background-color: var(--danger-light); color: var(--danger);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"></path><path d="M6 6V2h8v4"></path><path d="M13 18H7a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1z"></path><path d="M17 10h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4"></path></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+            <div class="kpi-info">
+              <h3>Avg Bags / Trip</h3>
+              <div class="kpi-value" id="logistics-avg-bags-val">0.0</div>
+              <div class="kpi-subvalue" id="logistics-avg-bags-sub">Bags per delivery trip</div>
+            </div>
+            <div class="kpi-icon warning" style="background-color: var(--warning-light); color: var(--warning);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Visual Charts -->
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <h3>Sales & Payment Flow (Last 6 Months)</h3>
+            <div class="chart-container" id="sales-chart-container">
+              <!-- Inline SVG Bar Chart generated dynamically by Javascript -->
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <h3>Outstanding Balances by Shop</h3>
+            <div class="chart-container" id="pie-chart-container">
+              <!-- SVG Donut Chart/Bars generated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Supply Records -->
+        <div class="chart-card" style="min-height: auto;">
+          <h3 style="margin-bottom: 15px;">Recent Supply Transactions</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shop Name</th>
+                  <th class="text-right">Bags</th>
+                  <th class="text-right">Total Weight (Kg)</th>
+                  <th class="text-right">Rate / Kg</th>
+                  <th class="text-right">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-supplies">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Shops and Accounts -->
+      <section id="shops-view" class="view-section">
+        <div class="actions-bar">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="shop-search" placeholder="Search shops by name or owner...">
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <select id="shop-filter-sort" style="width: auto;">
+              <option value="name-asc">Sort: Name (A-Z)</option>
+              <option value="name-desc">Sort: Name (Z-A)</option>
+              <option value="balance-desc">Sort: Highest Due</option>
+              <option value="balance-asc">Sort: Lowest Due</option>
+            </select>
+            <button class="btn btn-primary" id="btn-add-shop">
+              <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add New Shop
+            </button>
+          </div>
+        </div>
+
+        <!-- Shops Grid -->
+        <div class="shops-grid" id="shops-list-container">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- View 3: New Supply Entry -->
+      <section id="supply-view" class="view-section">
+        <div class="form-card">
+          <form id="supply-entry-form">
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label for="supply-shop-select" class="required">Select Shop</label>
+                <select id="supply-shop-select" required>
+                  <option value="">-- Choose a Shop --</option>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="supply-date" class="required">Supply Date</label>
+                <input type="date" id="supply-date" required>
+              </div>
+
+              <div class="form-group">
+                <label for="supply-rate" class="required">Rate per Kg (₹)</label>
+                <input type="number" id="supply-rate" step="0.01" min="0" placeholder="e.g. 28.50" required>
+              </div>
+
+              <div class="form-group col-span-2">
+                <label for="supply-weights" class="required">Bags Weight Input (Rapid Mode)</label>
+                <textarea id="supply-weights" rows="4" placeholder="Enter weights separated by spaces, commas, or enter (e.g. 42 45.5 48,50 49)" required></textarea>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                  💡 Just type bag weights one by one. Example: 45 42.5 46 51 40 43.5
+                </p>
+              </div>
+            </div>
+
+            <!-- Smart Parser Results -->
+            <div class="smart-entry-panel">
+              <div class="smart-entry-header">
+                <h4>
+                  <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  Real-time Bag Weight Calculations
+                </h4>
+              </div>
+
+              <div class="bag-list-preview" id="parsed-bags-preview">
+                <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>
+              </div>
+
+              <div class="bag-stats-strip">
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Bags</div>
+                  <div class="bag-stat-val" id="stat-bag-count">0</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Weight</div>
+                  <div class="bag-stat-val" id="stat-total-weight">0.00 Kg</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Avg Weight</div>
+                  <div class="bag-stat-val" id="stat-avg-weight">0.00 Kg</div>
+                </div>
+                <div class="bag-stat-box">
+                  <div class="bag-stat-label">Total Amount</div>
+                  <div class="bag-stat-val" id="stat-total-amount" style="color: var(--primary)">₹0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group col-span-2" style="margin-top: 20px;">
+              <label for="supply-notes">Remarks / Vehicle Number / Notes</label>
+              <input type="text" id="supply-notes" placeholder="e.g. MH-12-AB-3456, Red Onion Grade-A">
+            </div>
+
+            <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn btn-secondary" id="btn-reset-supply">Clear</button>
+              <button type="submit" class="btn btn-primary">Save Supply Entry</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 3.5: Trips & Fuel Log -->
+      <section id="trips-view" class="view-section">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+          <!-- Trip Entry Form Card -->
+          <div class="form-card" style="margin: 0; max-width: 100%;">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">Record Delivery Trip</h3>
+            <form id="trip-entry-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                  <label for="trip-date" class="required">Trip Date</label>
+                  <input type="date" id="trip-date" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-fuel-cost" class="required">Fuel Cost (₹)</label>
+                  <input type="number" id="trip-fuel-cost" step="0.01" min="0" placeholder="e.g. 1500" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-bags" class="required">Total Bags Carried</label>
+                  <input type="number" id="trip-bags" min="0" placeholder="e.g. 45" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="trip-notes">Notes / Vehicle No / Route</label>
+                  <input type="text" id="trip-notes" placeholder="e.g. MH-12-AB-3456, GPay fuel">
+                </div>
+
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-trip">Clear</button>
+                  <button type="submit" class="btn btn-primary">Save Trip</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Trip History Card -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Recent Delivery Trips Log</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th class="text-right">Bags Carried</th>
+                    <th class="text-right">Fuel Cost (₹)</th>
+                    <th>Notes / Vehicle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="trips-history-rows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 3.7: Wholesale Purchases -->
+      <section id="sourcing-view" class="view-section">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+          <!-- Sourcing Entry Form Card -->
+          <div class="form-card" style="margin: 0; max-width: 100%;">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">Record Wholesale Purchase</h3>
+            <form id="sourcing-entry-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                  <label for="sourcing-supplier-select" class="required">Select Supplier Shop</label>
+                  <select id="sourcing-supplier-select" required>
+                    <option value="">-- Choose Supplier --</option>
+                    <option value="CHERIYAVA_NAS">CHERIYAVA NAS</option>
+                    <option value="NOUSHAD_NAS">NOUSHAD NAS</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-date" class="required">Purchase Date</label>
+                  <input type="date" id="sourcing-date" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="sourcing-rate" class="required">Purchase Rate (₹)</label>
+                    <input type="number" id="sourcing-rate" step="0.01" min="0" placeholder="e.g. 18.00" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="sourcing-rate-unit" class="required">Rate Unit</label>
+                    <select id="sourcing-rate-unit" required>
+                      <option value="per Kg">per Kg</option>
+                      <option value="per Bag">per Bag</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-weights" class="required">Bags Weight Input (Rapid Mode)</label>
+                  <textarea id="sourcing-weights" rows="4" placeholder="Enter weights separated by spaces, commas, or enter (e.g. 42 45.5 48,50 49)" required></textarea>
+                  <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    💡 Just type bag weights one by one. Example: 45 42.5 46 51 40 43.5
+                  </p>
+                </div>
+
+                <!-- Smart Parser Results -->
+                <div class="smart-entry-panel">
+                  <div class="smart-entry-header">
+                    <h4>
+                      <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      Real-time Sourcing Bag Weight Calculations
+                    </h4>
+                  </div>
+
+                  <div class="bag-list-preview" id="sourcing-parsed-bags-preview">
+                    <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Weights preview will appear here...</span>
+                  </div>
+
+                  <div class="bag-stats-strip">
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Bags</div>
+                      <div class="bag-stat-val" id="sourcing-stat-bag-count">0</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Weight</div>
+                      <div class="bag-stat-val" id="sourcing-stat-total-weight">0.00 Kg</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Avg Weight</div>
+                      <div class="bag-stat-val" id="sourcing-stat-avg-weight">0.00 Kg</div>
+                    </div>
+                    <div class="bag-stat-box">
+                      <div class="bag-stat-label">Total Cost</div>
+                      <div class="bag-stat-val" id="sourcing-stat-total-amount" style="color: var(--primary)">₹0.00</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sourcing-notes">Notes / Remarks / Vehicle</label>
+                  <input type="text" id="sourcing-notes" placeholder="e.g. MH-15-QQ-9999, Lasalgaon APMC">
+                </div>
+
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-sourcing">Clear</button>
+                  <button type="submit" class="btn btn-primary">Save Purchase</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Sourcing History Card -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Wholesale Purchases History Log</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Supplier Shop</th>
+                    <th class="text-right">Bags</th>
+                    <th class="text-right">Weight (Kg)</th>
+                    <th class="text-right">Rate/Unit</th>
+                    <th class="text-right">Total Cost</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sourcing-history-rows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Wholesale Payment Form -->
+          <div class="form-card" style="margin: 0; max-width: 100%; border-left: 4px solid var(--success);">
+            <h3 style="margin-bottom: 20px; font-family: var(--font-heading);">
+              💸 Record Payment to Wholesaler
+            </h3>
+            <form id="wholesale-payment-form">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="wpay-supplier-select" class="required">Supplier</label>
+                    <select id="wpay-supplier-select" required>
+                      <option value="">-- Choose Supplier --</option>
+                      <option value="CHERIYAVA_NAS">CHERIYAVA NAS</option>
+                      <option value="NOUSHAD_NAS">NOUSHAD NAS</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="wpay-date" class="required">Payment Date</label>
+                    <input type="date" id="wpay-date" required>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label for="wpay-amount" class="required">Amount Paid (₹)</label>
+                    <input type="number" id="wpay-amount" step="0.01" min="1" placeholder="e.g. 50000" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="wpay-mode">Payment Mode</label>
+                    <select id="wpay-mode">
+                      <option value="Cash">Cash</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="GPay/PhonePe">GPay/PhonePe</option>
+                      <option value="Cheque">Cheque</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="wpay-notes">Notes / Reference</label>
+                  <input type="text" id="wpay-notes" placeholder="e.g. UPI Ref: 123456789">
+                </div>
+
+                <div style="margin-top: 4px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="btn-reset-wpay">Clear</button>
+                  <button type="submit" class="btn btn-primary" style="background: var(--success);">Save Payment</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Wholesale Payments History -->
+          <div class="chart-card" style="min-height: auto;">
+            <h3 style="margin-bottom: 20px;">Payments Made to Wholesalers</h3>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th class="text-right">Amount Paid</th>
+                    <th>Mode</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="wpay-history-rows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Record Payment -->
+      <section id="payment-view" class="view-section">
+        <div class="form-card">
+          <!-- Dual-tab segment toggle -->
+          <div class="detail-tabs" style="margin-top:-10px; margin-bottom:20px; border-bottom:1px solid var(--border-color);">
+            <button type="button" class="detail-tab active" id="tab-payment-received" style="font-size:13px; padding:10px 15px;">Received from Customer</button>
+            <button type="button" class="detail-tab" id="tab-payment-paid" style="font-size:13px; padding:10px 15px;">Paid to Supplier</button>
+          </div>
+          
+          <input type="hidden" id="payment-type" value="Received">
+
+          <form id="payment-entry-form">
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label for="payment-shop-select" class="required" id="payment-shop-label">Select Customer Shop</label>
+                <select id="payment-shop-select" required>
+                  <option value="">-- Choose a Shop --</option>
+                  <!-- Populated by JS -->
+                </select>
+                <p id="payment-due-warning" style="font-size:12px; color: var(--danger); font-weight:600; margin-top:4px; display:none;">
+                  Outstanding balance: ₹0.00
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-date" class="required" id="payment-date-label">Date Received</label>
+                <input type="date" id="payment-date" required>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-amount" class="required" id="payment-amount-label">Amount Received (₹)</label>
+                <input type="number" id="payment-amount" step="0.01" min="0.01" placeholder="e.g. 15000" required>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-mode" class="required">Payment Mode</label>
+                <select id="payment-mode" required>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="GPay/PhonePe">GPay / PhonePe</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-reference">Reference No. / UTR No.</label>
+                <input type="text" id="payment-reference" placeholder="e.g. TXN987654321">
+              </div>
+
+              <div class="form-group col-span-2">
+                <label for="payment-notes">Notes / Remarks</label>
+                <input type="text" id="payment-notes" placeholder="e.g. Handed over to self, final settlement part">
+              </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="btn btn-secondary" id="btn-reset-payment">Clear</button>
+              <button type="submit" class="btn btn-primary">Record Payment</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 5: Backup & Data Management -->
+      <section id="backup-view" class="view-section">
+        <div class="manager-grid">
+          <!-- Backup Card -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>Download Backup File</h3>
+              <p>Save all your business records to your computer or phone. This creates a secure <b>.json</b> file that contains all shops, bag transactions, and payment histories. We recommend doing this weekly!</p>
+            </div>
+            <button class="btn btn-primary" id="btn-download-backup" style="width: 100%; justify-content: center;">
+              <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download Full Backup (.json)
+            </button>
+            <div id="last-backup-info" style="margin-top:10px; font-size:12px; color:var(--text-secondary); text-align:center;">Last backup: Never</div>
+          </div>
+
+          <!-- Restore Card -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>Restore From Backup</h3>
+              <p>Load previous accounts and ledgers from a saved backup file. <b>WARNING:</b> This will overwrite and replace all current data in the app. Make sure to download a backup first if you have important records.</p>
+            </div>
+            <div class="file-upload-wrapper">
+              <input type="file" id="backup-file-input" class="file-upload-input" accept=".json">
+              <div class="file-upload-btn">
+                <svg style="width:18px; height:18px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Choose Backup File to Restore</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export CSV Summaries -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>Export Ledger & Logistics Sheets (CSV)</h3>
+              <p>Download your business spreadsheets. You can export the accounts outstanding sheet or download the delivery trips log showing fuel expenses.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <button class="btn btn-secondary" id="btn-export-excel" style="width: 100%; justify-content: center; border-color: var(--success); color: var(--success);">
+                <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                Export Accounts Sheet (Excel/CSV)
+              </button>
+              <button class="btn btn-secondary" id="btn-export-trips" style="width: 100%; justify-content: center; border-color: var(--info); color: var(--info);">
+                <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                Export Delivery Trips Log (Excel/CSV)
+              </button>
+              <button class="btn btn-secondary" id="btn-export-sourcing" style="width: 100%; justify-content: center; border-color: var(--warning); color: var(--warning);">
+                <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                Export Wholesale Purchases Log (Excel/CSV)
+              </button>
+              <button class="btn btn-secondary" id="btn-export-wpay" style="width: 100%; justify-content: center; border-color: var(--success); color: var(--success);">
+                <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line><line x1="7" y1="4" x2="7" y2="20"></line></svg>
+                Export Wholesaler Payments Log (Excel/CSV)
+              </button>
+              <button class="btn btn-primary" id="btn-export-all" style="width: 100%; justify-content: center; background: linear-gradient(135deg, var(--primary), var(--accent));">
+                <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                ⭐ Export Complete Business Report (All Sheets)
+              </button>
+            </div>
+          </div>
+
+          <!-- Download Last 2 Weeks Card -->
+          <div class="manager-card" style="border-left: 4px solid var(--accent);">
+            <div class="manager-card-info">
+              <h3>📅 Download Last 2 Weeks Data</h3>
+              <p>Quick export of only the <b>last 14 days</b> — all purchases, payments, trips, and wholesale records from the past two weeks in one CSV file.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-export-2weeks" style="width: 100%; justify-content: center; background: var(--accent);">
+              <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              Download Last 2 Weeks Report (CSV)
+            </button>
+          </div>
+
+          <!-- Diagnostics & Reset Card -->
+          <div class="manager-card">
+            <div class="manager-card-info">
+              <h3>App Control & Reset</h3>
+              <p>You can load sample demo data to see how the app works, or erase all data to start fresh. Clearing data erases everything from the browser's storage.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <button class="btn btn-secondary" id="btn-load-demo" style="justify-content: center;">Load Demo Data</button>
+              <button class="btn btn-danger" id="btn-clear-all" style="justify-content: center;">Erase All Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal 1: Add/Edit Shop Form -->
+  <div class="modal-overlay" id="shop-form-modal">
+    <div class="modal-window" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h2 id="shop-modal-title">Add New Shop</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-shop-modal">
+          <svg style="width:24px; height:24px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="shop-details-form">
+        <div class="modal-body">
+          <input type="hidden" id="edit-shop-id">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group">
+              <label for="shop-name" class="required">Shop Name</label>
+              <input type="text" id="shop-name" placeholder="e.g. Mahavir Onion Traders" required>
+            </div>
+            <div class="form-group">
+              <label for="shop-owner" class="required">Owner Name</label>
+              <input type="text" id="shop-owner" placeholder="e.g. Rajesh Kumar" required>
+            </div>
+            <div class="form-group">
+              <label for="shop-type" class="required">Account Type</label>
+              <select id="shop-type" required>
+                <option value="Customer">Customer (We sell to them)</option>
+                <option value="Supplier">Supplier (We buy in bulk from them)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="shop-phone">Phone Number</label>
+              <input type="tel" id="shop-phone" placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group">
+              <label for="shop-address">Address / Market Location</label>
+              <input type="text" id="shop-address" placeholder="e.g. APMC Market, G-Block, Shop 42">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-shop-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-shop-modal">Save Shop</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Detailed Shop Ledger Account (Statement) -->
+  <div class="modal-overlay" id="shop-ledger-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h2>Shop Ledger Statement</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-ledger-modal">
+          <svg style="width:24px; height:24px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Print layout header -->
+        <div class="ledger-header" id="modal-ledger-header">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Ledger Action Tabs -->
+        <div class="detail-tabs">
+          <button class="detail-tab active" data-pane="tab-pane-supplies">Supplies History</button>
+          <button class="detail-tab" data-pane="tab-pane-payments">Payments History</button>
+          <button class="detail-tab" data-pane="tab-pane-statement">Detailed Balance Ledger</button>
+        </div>
+
+        <!-- Tab 1: Supplies History Pane -->
+        <div class="tab-pane active" id="tab-pane-supplies">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-supplies-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-supplies-rows">
+                <!-- JS Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Payments History Pane -->
+        <div class="tab-pane" id="tab-pane-payments">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-payments-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-payments-rows">
+                <!-- JS Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Detailed Ledger Statement (Running Balances) -->
+        <div class="tab-pane" id="tab-pane-statement">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr id="ledger-statement-headers">
+                  <!-- Dynamic JS -->
+                </tr>
+              </thead>
+              <tbody id="modal-ledger-statement-rows">
+                <!-- JS Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Print-only signature section -->
+        <div class="print-only-signature">
+          <div class="print-sig-box">Merchant Signature</div>
+          <div class="print-sig-box">Supplier Signature</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-print-statement">
+          <svg style="width:16px; height:16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print Statement / Save PDF
+        </button>
+        <button class="btn btn-secondary" id="btn-close-ledger-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Link App Engine Javascript -->
+  <script src="app.js"></script>
+</body>
+</html>
