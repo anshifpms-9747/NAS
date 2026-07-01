@@ -2280,7 +2280,14 @@ function initApp() {
   setupBagParser();
   setupTheme();
   setupBackupHandlers();
-  
+
+  // Pre-fill ALL date fields with today's date
+  const today = new Date().toISOString().split('T')[0];
+  ['supply-date','payment-date','trip-date','sourcing-date','wpay-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = today;
+  });
+
   // Render views based on current state
   navigate(State.currentView);
   showToast("Application loaded successfully", "success");
@@ -3029,44 +3036,46 @@ function setupFormHandlers() {
   // Submit new/edit shop details
   document.getElementById('shop-details-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const editId = document.getElementById('edit-shop-id').value;
-    const name = document.getElementById('shop-name').value.trim();
-    const owner = document.getElementById('shop-owner').value.trim();
-    const type = document.getElementById('shop-type').value;
-    const phone = document.getElementById('shop-phone').value.trim();
-    const address = document.getElementById('shop-address').value.trim();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) submitBtn.disabled = true;
 
-    if (!name || !owner) {
-      showToast("Shop name and Owner name are required", "warning");
-      return;
-    }
+    try {
+      const editId = document.getElementById('edit-shop-id').value;
+      const name = document.getElementById('shop-name').value.trim();
+      const owner = document.getElementById('shop-owner').value.trim();
+      const type = document.getElementById('shop-type').value;
+      const phone = document.getElementById('shop-phone').value.trim();
+      const address = document.getElementById('shop-address').value.trim();
 
-    if (editId) {
-      // Edit shop Mode
-      State.shops[editId].name = name;
-      State.shops[editId].owner = owner;
-      State.shops[editId].type = type;
-      State.shops[editId].phone = phone;
-      State.shops[editId].address = address;
-      showToast("Shop details updated", "success");
-    } else {
-      // Create new shop Mode
-      const newId = `shop-${Date.now()}`;
-      State.shops[newId] = {
-        id: newId,
-        name,
-        owner,
-        type,
-        phone,
-        address,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      showToast("New shop registered", "success");
+      if (!name || !owner) {
+        showToast("Shop name and Owner name are required", "warning");
+        return;
+      }
+
+      if (editId) {
+        State.shops[editId].name = name;
+        State.shops[editId].owner = owner;
+        State.shops[editId].type = type;
+        State.shops[editId].phone = phone;
+        State.shops[editId].address = address;
+        showToast("Shop details updated", "success");
+      } else {
+        const newId = `shop-${Date.now()}`;
+        State.shops[newId] = {
+          id: newId, name, owner, type, phone, address,
+          createdAt: new Date().toISOString().split('T')[0]
+        };
+        showToast("New shop registered", "success");
+      }
+
+      saveData();
+      closeShopModal();
+      renderShops();
+      refreshAllViews();
+    } finally {
+      setTimeout(() => { if (submitBtn) submitBtn.disabled = false; }, 1000);
     }
-    
-    saveData();
-    closeShopModal();
-    renderShops();
   });
 
   // Search & Filter change events
@@ -3076,41 +3085,55 @@ function setupFormHandlers() {
   // 2. Supply Entry Form Submit
   document.getElementById('supply-entry-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const shopId = document.getElementById('supply-shop-select').value;
-    const date = document.getElementById('supply-date').value;
-    const rate = parseFloat(document.getElementById('supply-rate').value);
-    const weightsString = document.getElementById('supply-weights').value;
-    const notes = document.getElementById('supply-notes').value.trim();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) submitBtn.disabled = true;
 
-    if (!shopId) {
-      showToast("Please choose a valid shop account", "warning");
-      return;
+    try {
+      const shopId = document.getElementById('supply-shop-select').value;
+      const date = document.getElementById('supply-date').value;
+      const rate = parseFloat(document.getElementById('supply-rate').value);
+      const weightsString = document.getElementById('supply-weights').value;
+      const notes = document.getElementById('supply-notes').value.trim();
+
+      if (!shopId) {
+        showToast("Please choose a valid shop account", "warning");
+        return;
+      }
+      if (!date) {
+        showToast("Please select a supply date", "warning");
+        return;
+      }
+      if (isNaN(rate) || rate <= 0) {
+        showToast("Please enter a valid rate per Kg", "warning");
+        return;
+      }
+
+      const parsed = parseWeightsString(weightsString);
+      if (parsed.bagWeights.length === 0) {
+        showToast("Please enter at least one bag weight", "warning");
+        return;
+      }
+
+      const newTx = {
+        id: `tx-${Date.now()}`,
+        shopId, date,
+        ratePerKg: rate,
+        bagWeights: parsed.bagWeights,
+        totalBags: parsed.totalBags,
+        totalWeight: parsed.totalWeight,
+        totalAmount: parsed.totalWeight * rate,
+        notes
+      };
+
+      State.transactions.push(newTx);
+      saveData();
+      showToast(`✅ Recorded: ${parsed.totalBags} bags supplied`, "success");
+      resetSupplyForm();
+      navigate('dashboard-view');
+    } finally {
+      setTimeout(() => { if (submitBtn) submitBtn.disabled = false; }, 1500);
     }
-
-    // Parse weights
-    const parsed = parseWeightsString(weightsString);
-    if (parsed.bagWeights.length === 0) {
-      showToast("Please enter at least one bag weight", "warning");
-      return;
-    }
-
-    const txId = `tx-${Date.now()}`;
-    const newTx = {
-      id: txId,
-      shopId,
-      date,
-      ratePerKg: rate,
-      bagWeights: parsed.bagWeights,
-      totalBags: parsed.totalBags,
-      totalWeight: parsed.totalWeight,
-      totalAmount: parsed.totalWeight * rate,
-      notes
-    };
-
-    State.transactions.push(newTx);
-    saveData();
-    showToast(`Recorded: ${parsed.totalBags} bags supplied successfully`, "success");
-    navigate('dashboard-view');
   });
 
   document.getElementById('btn-reset-supply').addEventListener('click', resetSupplyForm);
@@ -3125,41 +3148,44 @@ function setupFormHandlers() {
 
   document.getElementById('payment-entry-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const shopId = document.getElementById('payment-shop-select').value;
-    const date = document.getElementById('payment-date').value;
-    const amount = parseFloat(document.getElementById('payment-amount').value);
-    const mode = document.getElementById('payment-mode').value;
-    const reference = document.getElementById('payment-reference').value.trim();
-    const notes = document.getElementById('payment-notes').value.trim();
-    const type = document.getElementById('payment-type').value || 'Received';
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) submitBtn.disabled = true;
 
-    if (!shopId) {
-      showToast("Please select a shop account", "warning");
-      return;
+    try {
+      const shopId = document.getElementById('payment-shop-select').value;
+      const date = document.getElementById('payment-date').value;
+      const amount = parseFloat(document.getElementById('payment-amount').value);
+      const mode = document.getElementById('payment-mode').value;
+      const reference = document.getElementById('payment-reference').value.trim();
+      const notes = document.getElementById('payment-notes').value.trim();
+      const type = document.getElementById('payment-type').value || 'Received';
+
+      if (!shopId) {
+        showToast("Please select a shop account", "warning");
+        return;
+      }
+      if (!date) {
+        showToast("Please select a payment date", "warning");
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        showToast("Payment amount must be greater than zero", "warning");
+        return;
+      }
+
+      State.payments.push({
+        id: `pay-${Date.now()}`,
+        shopId, date, amount, mode, reference, notes, type
+      });
+      saveData();
+      const actionWord = type === 'Paid' ? 'paid to' : 'received from';
+      showToast(`✅ ₹${amount} ${actionWord} shop recorded`, "success");
+      resetPaymentForm();
+      navigate('dashboard-view');
+    } finally {
+      setTimeout(() => { if (submitBtn) submitBtn.disabled = false; }, 1500);
     }
-
-    if (amount <= 0) {
-      showToast("Payment amount must be greater than zero", "warning");
-      return;
-    }
-
-    const payId = `pay-${Date.now()}`;
-    const newPay = {
-      id: payId,
-      shopId,
-      date,
-      amount,
-      mode,
-      reference,
-      notes,
-      type
-    };
-
-    State.payments.push(newPay);
-    saveData();
-    const actionWord = type === 'Paid' ? 'paid to' : 'received from';
-    showToast(`Payment of ₹${amount} recorded as ${actionWord} shop`, "success");
-    navigate('dashboard-view');
   });
 
   // Dynamic alert for pending outstanding on Payment Page
@@ -3199,24 +3225,32 @@ function setupFormHandlers() {
   if (tripForm) {
     tripForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const date = document.getElementById('trip-date').value;
-      const fuelCost = parseFloat(document.getElementById('trip-fuel-cost').value) || 0;
-      const totalBags = parseInt(document.getElementById('trip-bags').value) || 0;
-      const notes = document.getElementById('trip-notes').value.trim();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn && submitBtn.disabled) return;
+      if (submitBtn) submitBtn.disabled = true;
 
-      const tripId = `trip-${Date.now()}`;
-      const newTrip = {
-        id: tripId,
-        date,
-        fuelCost,
-        totalBags,
-        notes
-      };
+      try {
+        const date = document.getElementById('trip-date').value;
+        const fuelCost = parseFloat(document.getElementById('trip-fuel-cost').value) || 0;
+        const totalBags = parseInt(document.getElementById('trip-bags').value) || 0;
+        const notes = document.getElementById('trip-notes').value.trim();
 
-      State.trips.push(newTrip);
-      saveData();
-      showToast(`Recorded delivery trip with ${totalBags} bags`, "success");
-      navigate('dashboard-view');
+        if (!date) {
+          showToast("Please select a trip date", "warning");
+          return;
+        }
+
+        State.trips.push({
+          id: `trip-${Date.now()}`,
+          date, fuelCost, totalBags, notes
+        });
+        saveData();
+        showToast(`✅ Trip with ${totalBags} bags recorded`, "success");
+        resetTripForm();
+        navigate('dashboard-view');
+      } finally {
+        setTimeout(() => { if (submitBtn) submitBtn.disabled = false; }, 1500);
+      }
     });
   }
 
@@ -3258,51 +3292,56 @@ function setupFormHandlers() {
 
     sourcingForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const supplierVal = document.getElementById('sourcing-supplier-select').value;
-      const date = document.getElementById('sourcing-date').value;
-      const rate = parseFloat(document.getElementById('sourcing-rate').value) || 0;
-      const rateUnit = document.getElementById('sourcing-rate-unit').value;
-      const notes = document.getElementById('sourcing-notes').value.trim();
-      const weights = parseSourcingWeights();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn && submitBtn.disabled) return;
+      if (submitBtn) submitBtn.disabled = true;
 
-      if (!supplierVal) {
-        showToast("Please choose a valid supplier shop", "warning");
-        return;
+      try {
+        const supplierVal = document.getElementById('sourcing-supplier-select').value;
+        const date = document.getElementById('sourcing-date').value;
+        const rate = parseFloat(document.getElementById('sourcing-rate').value) || 0;
+        const rateUnit = document.getElementById('sourcing-rate-unit').value;
+        const notes = document.getElementById('sourcing-notes').value.trim();
+        const weights = parseSourcingWeights();
+
+        if (!supplierVal) {
+          showToast("Please choose a valid supplier", "warning");
+          return;
+        }
+        if (!date) {
+          showToast("Please select a purchase date", "warning");
+          return;
+        }
+        if (weights.length === 0) {
+          showToast("Please enter at least one bag weight", "warning");
+          return;
+        }
+        if (isNaN(rate) || rate <= 0) {
+          showToast("Please enter a valid purchase rate", "warning");
+          return;
+        }
+
+        const totalBags = weights.length;
+        const totalWeight = weights.reduce((s, w) => s + w, 0);
+        const totalAmount = rateUnit === 'per Kg' ? totalWeight * rate : totalBags * rate;
+
+        State.purchases.push({
+          id: `pur-${Date.now()}`,
+          supplierId: supplierVal,
+          supplierName: supplierVal === 'CHERIYAVA_NAS' ? 'CHERIYAVA NAS' :
+                        supplierVal === 'NOUSHAD_NAS' ? 'NOUSHAD NAS' :
+                        (State.shops[supplierVal] ? State.shops[supplierVal].name : supplierVal),
+          date, rate, rateUnit, totalBags,
+          totalWeight: parseFloat(totalWeight.toFixed(2)),
+          bagWeights: weights, totalAmount, notes
+        });
+        saveData();
+        showToast(`✅ Wholesale: ${totalBags} bags (${totalWeight.toFixed(1)} Kg) recorded`, "success");
+        resetSourcingForm();
+        navigate('dashboard-view');
+      } finally {
+        setTimeout(() => { if (submitBtn) submitBtn.disabled = false; }, 1500);
       }
-      if (weights.length === 0) {
-        showToast("Please enter at least one bag weight", "warning");
-        return;
-      }
-      if (rate <= 0) {
-        showToast("Please enter a valid purchase rate", "warning");
-        return;
-      }
-
-      const totalBags = weights.length;
-      const totalWeight = weights.reduce((s, w) => s + w, 0);
-      const totalAmount = rateUnit === 'per Kg' ? totalWeight * rate : totalBags * rate;
-      const supplierId = supplierVal;
-
-      const newPur = {
-        id: `pur-${Date.now()}`,
-        supplierId,
-        supplierName: supplierVal === 'CHERIYAVA_NAS' ? 'CHERIYAVA NAS' :
-                      supplierVal === 'NOUSHAD_NAS' ? 'NOUSHAD NAS' :
-                      (State.shops[supplierVal] ? State.shops[supplierVal].name : supplierVal),
-        date,
-        rate,
-        rateUnit,
-        totalBags,
-        totalWeight: parseFloat(totalWeight.toFixed(2)),
-        bagWeights: weights,
-        totalAmount,
-        notes
-      };
-
-      State.purchases.push(newPur);
-      saveData();
-      showToast(`Recorded wholesale purchase of ${totalBags} bags (${totalWeight.toFixed(1)} Kg)`, "success");
-      navigate('dashboard-view');
     });
 
     const weightsTA = document.getElementById('sourcing-weights');
